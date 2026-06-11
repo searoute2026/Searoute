@@ -192,18 +192,45 @@
   const WP_CONNECT_RADIUS = 3.0, WP_K_NEAR = 9, MAX_ITER = 250000;
   function dist(a,b) { return Math.hypot(a[0]-b[0], a[1]-b[1]); }
   function distKm(a,b) { const R=6371; const dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180; const lat1=a[0]*Math.PI/180, lat2=b[0]*Math.PI/180; const s=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return R*2*Math.atan2(Math.sqrt(s), Math.sqrt(1-s)); }
-  function pointInPolygon(p, vs) { let inside=false; for(let i=0,j=vs.length-1; i<vs.length; j=i++) { const xi=vs[i][0], yi=vs[i][1], xj=vs[j][0], yj=vs[j][1]; if(((yi>p[1])!=(yj>p[1])) && (p[0]<(xj-xi)*(p[1]-yi)/(yj-yi)+xi)) inside=!inside; } return inside; }
+  
+  // Enhanced pointInPolygon that handles both [lat,lng] and [lng,lat] detection
+  function pointInPolygon(p, vs) { 
+    let inside = false;
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+      const xi = vs[i][0], yi = vs[i][1];
+      const xj = vs[j][0], yj = vs[j][1];
+      const intersect = ((yi > p[1]) != (yj > p[1])) && (p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+  
   function isBlocked(lat,lng) { if(!islands.length) return false; for(const isl of islands) { if(isl.bbox && lat>=isl.bbox.minLat && lat<=isl.bbox.maxLat && lng>=isl.bbox.minLng && lng<=isl.bbox.maxLng && pointInPolygon([lat,lng], isl.polygon)) return true; } return false; }
   
-  // Get depth at a point (meters)
+  // Convert polygon from [lng,lat] to [lat,lng] if needed
+  function convertPolygonToLatLng(polygon) {
+    if (!polygon || polygon.length === 0) return polygon;
+    // Check if first point seems to be [lng,lat] (longitude between -180-180, latitude between -90-90)
+    const firstPoint = polygon[0];
+    if (Math.abs(firstPoint[0]) <= 180 && Math.abs(firstPoint[1]) <= 90 && 
+        (firstPoint[0] > 90 || firstPoint[0] < -90 || firstPoint[1] > -90)) {
+      // This is likely [lng,lat] format, convert to [lat,lng]
+      return polygon.map(p => [p[1], p[0]]);
+    }
+    return polygon;
+  }
+  
+  // Get depth at a point (meters) - handles both coordinate formats
   function getDepthAt(lat, lng) {
-    if(!depthZones.length) return 999; // Assume safe if no depth data
+    if(!depthZones.length) return 999;
     for(const zone of depthZones) {
-      if(pointInPolygon([lat, lng], zone.polygon)) {
+      // Use the stored latLngPolygon
+      const polygon = zone.latLngPolygon || zone.polygon;
+      if(polygon && pointInPolygon([lat, lng], polygon)) {
         return zone.depth;
       }
     }
-    return 999; // Default deep water
+    return 999;
   }
   
   // Check if depth is safe for current ship
@@ -211,40 +238,32 @@
     const length = currentShipLength;
     const draft = currentShipDraft;
     
-    if(length === 0 && draft === 0) return true; // No ship selected yet
+    if(length === 0 && draft === 0) return true;
     
-    // Safety rules based on ship size and draft
     let minSafeDepth = 0;
     
     if(length >= 100 && length <= 200) {
-      // Large ships: need at least 20m depth, ideally draft + 5m margin
       minSafeDepth = Math.max(20, draft + 5);
     } 
     else if(length >= 50 && length < 100) {
-      // Medium ships: need at least 13m depth, or draft + 4m margin
       minSafeDepth = Math.max(13, draft + 4);
     }
     else if(length >= 20 && length < 50) {
-      // Small-medium: need at least 8m depth, or draft + 3m margin
       minSafeDepth = Math.max(8, draft + 3);
     }
     else if(length >= 10 && length < 20) {
-      // Small ships: need at least 2.5m depth, or draft + 2m margin
       minSafeDepth = Math.max(2.5, draft + 2);
     }
     else if(length > 200) {
-      // Very large: need at least 25m depth, or draft + 6m margin
       minSafeDepth = Math.max(25, draft + 6);
     }
     else {
-      // Very small or unknown: need draft + 1.5m margin
       minSafeDepth = draft + 1.5;
     }
     
     return depthMeters >= minSafeDepth;
   }
   
-  // Get safety status for waypoint
   function getWaypointSafety(wp) {
     const depth = getDepthAt(wp.lat, wp.lng);
     const safe = isDepthSafe(depth);
@@ -270,7 +289,6 @@
     return smoothed;
   }
 
-  // MENAMPILKAN WAYPOINT DENGAN TOOLTIP KOORDINAT + KEDALAMAN
   function showWaypointMarkersFromPath(pathIds) {
     clearWaypointMarkers();
     if(!pathIds || pathIds.length === 0) return;
@@ -306,18 +324,27 @@
     if(routeLine) map.removeLayer(routeLine); if(startMarker) map.removeLayer(startMarker); if(endMarker) map.removeLayer(endMarker);
     routeLine=startMarker=endMarker=null; start=end=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker);
     
-    // Load kedalaman.json
+    // Load kedalaman.json - FIXED: handle [lng,lat] format
     try {
       const depthRes = await fetch('kedalaman.json');
       const depthData = await depthRes.json();
       depthZones = depthData.depthZones || [];
-      // Display depth polygons
+      
       for(const zone of depthZones) {
         if(!zone.polygon || zone.polygon.length < 3) continue;
-        // Close polygon if needed
-        if(zone.polygon[0] !== zone.polygon[zone.polygon.length-1]) {
-          zone.polygon.push(zone.polygon[0]);
+        
+        // Convert polygon to [lat,lng] format for point-in-polygon and Leaflet
+        const convertedPolygon = convertPolygonToLatLng(zone.polygon);
+        zone.latLngPolygon = convertedPolygon;
+        
+        // Close polygon if needed for display
+        let closedPolygon = [...convertedPolygon];
+        const first = convertedPolygon[0];
+        const last = convertedPolygon[convertedPolygon.length - 1];
+        if (first[0] !== last[0] || first[1] !== last[1]) {
+          closedPolygon = [...convertedPolygon, first];
         }
+        
         // Color based on depth
         let fillColor, borderColor;
         if(zone.depth < 10) { fillColor = "#ffcccc"; borderColor = "#cc0000"; }
@@ -325,7 +352,7 @@
         else if(zone.depth < 50) { fillColor = "#88ccff"; borderColor = "#0066cc"; }
         else { fillColor = "#66aaff"; borderColor = "#004499"; }
         
-        depthPolygons.push(L.polygon(zone.polygon, {
+        depthPolygons.push(L.polygon(closedPolygon, {
           color: borderColor,
           weight: 1.5,
           fillOpacity: 0.35,
@@ -333,8 +360,17 @@
           interactive: false
         }).addTo(map).bindTooltip(`🌊 ${zone.name}<br>Kedalaman: ${zone.depth}m`, { sticky: true }));
       }
-      setStatus(`🌊 ${depthZones.length} zona kedalaman dimuat`, "#2c7a4d");
-    } catch(e) { console.log("kedalaman.json tidak ditemukan atau error:", e); setStatus("⚠️ kedalaman.json tidak ada", "#f39c12"); depthZones = []; }
+      
+      if(depthZones.length > 0) {
+        setStatus(`🌊 ${depthZones.length} zona kedalaman dimuat`, "#2c7a4d");
+      } else {
+        setStatus("⚠️ Tidak ada zona kedalaman", "#f39c12");
+      }
+    } catch(e) { 
+      console.log("kedalaman.json tidak ditemukan atau error:", e); 
+      setStatus("⚠️ kedalaman.json tidak ada", "#f39c12"); 
+      depthZones = []; 
+    }
     
     try { let wpFile = modeName==="BIGRU" ? 'waypoint2.json' : 'waypoint.json'; const res=await fetch(wpFile); const data=await res.json(); waypoints=(data.waypoints||data||[]).filter(w=>w.lat&&w.lng); setStatus(`📍 ${waypoints.length} waypoint`, "#2f7f5f"); } catch(e){ setStatus(`⚠️ Gagal muat data waypoint`, "#e67e22"); waypoints=[]; }
     
@@ -371,13 +407,11 @@
     if(isRouting) return;
     if(!wpReady||waypoints.length===0){alert("Data waypoint belum siap."); return;}
     
-    // Update ship dimensions from inputs
     const lengthInput = document.getElementById('shipLength').value;
     const draftInput = document.getElementById('shipDraft').value;
     currentShipLength = lengthInput ? parseFloat(lengthInput) : (activeShipTelemetry?.length || 0);
     currentShipDraft = draftInput ? parseFloat(draftInput) : (activeShipTelemetry?.draft || 0);
     
-    // Check start and end depth safety
     const startDepth = getDepthAt(start[0], start[1]);
     const endDepth = getDepthAt(end[0], end[1]);
     let warningMsg = "";
@@ -398,7 +432,6 @@
     const rawCoords=pathIds.map(id=>coordOf(id)); drawRouteAsCurve(rawCoords);
     let totalKm=0; let unsafeWaypointsCount = 0;
     for(let i=1;i<rawCoords.length;i++) totalKm+=distKm(rawCoords[i-1],rawCoords[i]);
-    // Count unsafe waypoints along route
     for(let id of pathIds) {
       if(typeof id === 'number') {
         const { safe } = getWaypointSafety(waypoints[id]);
