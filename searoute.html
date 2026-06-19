@@ -15,6 +15,8 @@
     .marine-nav { position: absolute; top: 12px; left: 12px; right: 12px; width: auto; max-width: 420px; max-height: calc(100vh - 24px); background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border-radius: 24px; z-index: 1000; box-shadow: 0 8px 24px rgba(0, 20, 40, 0.2); border: 1px solid rgba(0, 110, 150, 0.2); display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     @media (min-width: 640px) { .marine-nav { left: 16px; right: auto; width: 400px; max-width: 85vw; } }
     .marine-nav.collapsed .nav-content { display: none; }
+    .marine-nav.collapsed .toggle-icon i { transform: rotate(-90deg); }
+    .marine-nav .toggle-icon i { transition: transform 0.3s ease; }
     .nav-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: white; border-bottom: 1px solid #e2edf5; }
     .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; color: #016e8c; }
     .brand i { font-size: 1.2rem; color: #0277a5; }
@@ -50,6 +52,7 @@
     .telemetry-item span { overflow: hidden; text-overflow: ellipsis; }
     .status-badge { background: #27ae60; color: white; padding: 2px 10px; border-radius: 40px; font-size: 0.6rem; font-weight: bold; }
     .status-badge.danger { background: #e74c3c; }
+    .status-badge.warning { background: #f39c12; }
     .info-tip { font-size: 0.65rem; background: #f7fbfe; border-radius: 20px; padding: 8px 12px; margin-top: 12px; color: #387e9c; border: 1px solid #e2edf5; }
     .status-mini { background: #eef3f8; border-radius: 40px; padding: 8px 12px; font-size: 0.7rem; text-align: center; margin: 12px 0; color: #296f8c; }
     .progress-bar { width: 100%; height: 3px; background: #dbe9f2; border-radius: 3px; margin: 6px 0; display: none; }
@@ -63,6 +66,13 @@
     .selected-port-info { background: #e8f4fc; border-radius: 24px; padding: 8px 12px; margin-top: 8px; font-size: 0.7rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .waypoint-marker-label { font-weight: bold; font-size: 10px; background: rgba(0, 80, 120, 0.92); color: white; padding: 3px 8px; border-radius: 20px; white-space: nowrap; border: 1px solid #7bc5e8; font-family: monospace; }
     .waypoint-marker-label.danger { background: rgba(200, 60, 40, 0.95); border-color: #ffaa00; }
+    .waypoint-marker-label.warning { background: rgba(243, 156, 18, 0.95); border-color: #ffaa00; }
+    .ukc-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 8px; }
+    .ukc-detail-item { background: rgba(255,255,255,0.7); padding: 4px 6px; border-radius: 8px; font-size: 0.6rem; text-align: center; }
+    .ukc-detail-item .label { color: #5a7e92; font-weight: 500; }
+    .ukc-detail-item .value { font-weight: 700; color: #016e8c; }
+    .ukc-detail-item .value.danger { color: #e74c3c; }
+    .ukc-detail-item .value.success { color: #27ae60; }
     button, .mode-tab, .route-mode-btn, .btn-icon, .search-result-item { touch-action: manipulation; }
   </style>
 </head>
@@ -72,7 +82,7 @@
 <div class="marine-nav collapsed" id="marineNav">
   <div class="nav-header" id="navHeader">
     <div class="brand"><i class="fas fa-ship"></i> SeaRoute <span>DEPTH-AWARE</span></div>
-    <div class="toggle-icon" id="navToggleBtn"><i class="fas fa-chevron-down" id="toggleIcon"></i></div>
+    <button class="toggle-icon" id="navToggleBtn"><i class="fas fa-chevron-down" id="toggleIcon"></i></button>
   </div>
   <div class="nav-content">
     <div class="mode-tabs">
@@ -133,6 +143,20 @@
         <input type="number" id="shipLength" placeholder="Panjang (m)" value="" step="1">
         <input type="number" id="shipDraft" placeholder="Draft (m)" value="" step="0.1">
       </div>
+      <div class="flex-row">
+        <input type="number" id="draftTrim" placeholder="Trim (m)" value="" step="0.01">
+        <input type="number" id="draftListing" placeholder="Listing (m)" value="" step="0.01">
+      </div>
+      <div class="flex-row">
+        <input type="number" id="squat" placeholder="Squat (m)" value="" step="0.01">
+        <input type="number" id="waveMotion" placeholder="Wave (m)" value="" step="0.01">
+      </div>
+      <div class="flex-row">
+        <select id="environmentType" style="flex:1; padding:10px 12px; border-radius:48px; border:1px solid #d4e2ec; background:white;">
+          <option value="Coastal Water">Coastal Water</option>
+          <option value="Port Approach">Port Approach</option>
+        </select>
+      </div>
       <button id="fetchShipByMmsiBtn" style="width:100%; background:#d4eaf3; border:none; padding:10px; border-radius:40px;"><i class="fas fa-search"></i> Pilih Kapal & Set START</button>
     </div>
 
@@ -157,332 +181,627 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE</button>
+    <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE & UKC ANALYSIS</button>
     <button class="btn-outline" id="animateBtn"><i class="fas fa-play"></i> ANIMASI KAPAL</button>
     <button class="btn-outline" id="clearAllBtn"><i class="fas fa-trash-alt"></i> RESET</button>
+
+    <div id="ukcPanel" style="display: none;" class="telemetry-card">
+      <div class="telemetry-title">
+        <span><i class="fas fa-water"></i> UKC ANALYSIS</span>
+        <span class="status-badge" id="ukcStatusBadge">--</span>
+      </div>
+      <div class="telemetry-grid">
+        <div class="telemetry-item"><i class="fas fa-arrow-up"></i> <span>Dynamic Draft: <b id="ukcDynamicDraft">0.00</b> m</span></div>
+        <div class="telemetry-item"><i class="fas fa-shield-alt"></i> <span>UKC Required: <b id="ukcRequired">0.00</b> m</span></div>
+        <div class="telemetry-item"><i class="fas fa-ruler-vertical"></i> <span>Required Depth: <b id="ukcReqDepth">0.00</b> m</span></div>
+        <div class="telemetry-item"><i class="fas fa-check-circle"></i> <span>Safety Margin: <b id="ukcMargin">0.00</b> m</span></div>
+      </div>
+      <div class="ukc-detail-grid">
+        <div class="ukc-detail-item"><span class="label">Static Draft</span><br><span class="value" id="ukcStaticDraft">0.00</span></div>
+        <div class="ukc-detail-item"><span class="label">Trim</span><br><span class="value" id="ukcTrim">0.00</span></div>
+        <div class="ukc-detail-item"><span class="label">Listing</span><br><span class="value" id="ukcListing">0.00</span></div>
+        <div class="ukc-detail-item"><span class="label">Squat</span><br><span class="value" id="ukcSquat">0.00</span></div>
+        <div class="ukc-detail-item"><span class="label">Wave</span><br><span class="value" id="ukcWave">0.00</span></div>
+        <div class="ukc-detail-item"><span class="label">Environment</span><br><span class="value" id="ukcEnvironment">--</span></div>
+      </div>
+      <div class="info-tip" style="margin-top:8px; font-size:0.6rem;" id="ukcDetailInfo">
+        <i class="fas fa-info-circle"></i> Klik waypoint untuk melihat detail UKC
+      </div>
+    </div>
 
     <div class="status-mini"><i class="fas fa-info-circle"></i> <span id="status">Memulai sistem...</span></div>
     <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="info-tip" id="infoBox"><i class="fas fa-lightbulb"></i> Arahkan kursor ke titik biru untuk melihat koordinat waypoint & kedalaman.</div>
   </div>
 </div>
-  
-<script src="ukc_core_module/ukc.js"></script>
-    
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const MAPTILER_KEY = 'mP5EMYL63473c6VT5cg6';
-  const map = L.map('map', { zoomControl: false }).setView([-2.5, 118], 5);
-  L.tileLayer(`https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, {
+// ============================================================
+// NAVBAR TOGGLE FUNCTIONALITY - FIXED
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const nav = document.getElementById('marineNav');
+    const toggleBtn = document.getElementById('navToggleBtn');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const navHeader = document.getElementById('navHeader');
+
+    function toggleNav() {
+        nav.classList.toggle('collapsed');
+        // Update icon
+        if (nav.classList.contains('collapsed')) {
+            toggleIcon.className = 'fas fa-chevron-down';
+        } else {
+            toggleIcon.className = 'fas fa-chevron-up';
+        }
+    }
+
+    // Toggle on button click
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleNav();
+        });
+    }
+
+    // Toggle on header click (excluding button)
+    if (navHeader) {
+        navHeader.addEventListener('click', function(e) {
+            // Don't toggle if clicking on the button itself
+            if (e.target.closest('.toggle-icon')) return;
+            toggleNav();
+        });
+    }
+
+    // Initially collapsed - set icon correctly
+    if (nav.classList.contains('collapsed')) {
+        toggleIcon.className = 'fas fa-chevron-down';
+    } else {
+        toggleIcon.className = 'fas fa-chevron-up';
+    }
+});
+
+// ============================================================
+// UKC CALCULATION MODULE - Under Keel Clearance
+// ============================================================
+
+class UKCCalculator {
+    constructor() {
+        this.validations = { allInputsValid: false, errors: [] };
+    }
+
+    calculateDynamicDraft(params) {
+        const { draftTrim, draftListing, squat, waveMotion } = params;
+        // Convert null/undefined/empty string to 0
+        const trim = parseFloat(draftTrim) || 0;
+        const listing = parseFloat(draftListing) || 0;
+        const squatVal = parseFloat(squat) || 0;
+        const waveVal = parseFloat(waveMotion) || 0;
+        const maxDraft = Math.max(trim, listing);
+        return Math.round((maxDraft + squatVal + waveVal) * 100) / 100;
+    }
+
+    calculateUKCRequirement(environment, staticDraft, dynamicDraft) {
+        if (environment === 'Port Approach') {
+            return Math.max(1.0, 0.10 * staticDraft);
+        } else {
+            return 0.20 * dynamicDraft;
+        }
+    }
+
+    calculateRequiredDepth(dynamicDraft, ukc) {
+        return Math.round((dynamicDraft + ukc) * 100) / 100;
+    }
+
+    determineStatus(availableDepth, requiredDepth) {
+        const safetyMargin = Math.round((availableDepth - requiredDepth) * 100) / 100;
+        return {
+            status: safetyMargin >= 0 ? 'ACCEPTABLE' : 'NOT ACCEPTABLE',
+            safetyMargin,
+            isSafe: safetyMargin >= 0
+        };
+    }
+
+    validateInputs(params) {
+        const errors = [];
+        const { shipName, staticDraft, waterDepthAvailable, environment } = params;
+
+        if (!shipName || shipName.trim() === '') errors.push('Ship Name is required');
+        if (!environment || (environment !== 'Port Approach' && environment !== 'Coastal Water')) {
+            errors.push('Environment must be "Port Approach" or "Coastal Water"');
+        }
+
+        const numericFields = ['length', 'breadth', 'staticDraft', 'draftTrim', 'draftListing', 'squat', 'waveMotion', 'waterDepthAvailable'];
+        numericFields.forEach(field => {
+            const val = params[field];
+            if (val === undefined || val === null || val === '') {
+                errors.push(`${field} is required`);
+            } else if (typeof val === 'number' && val < 0) {
+                errors.push(`${field} cannot be negative`);
+            }
+        });
+
+        if (staticDraft && waterDepthAvailable) {
+            const maxDraft = Math.max(params.draftTrim || 0, params.draftListing || 0);
+            const totalDraft = maxDraft + (params.squat || 0) + (params.waveMotion || 0);
+            if (totalDraft > waterDepthAvailable) {
+                errors.push(`Total draft (${totalDraft}m) exceeds available water depth (${waterDepthAvailable}m)`);
+            }
+        }
+
+        this.validations.errors = errors;
+        this.validations.allInputsValid = errors.length === 0;
+        return this.validations;
+    }
+
+    calculate(input) {
+        const validation = this.validateInputs(input);
+        if (!validation.allInputsValid) {
+            return { errors: validation.errors, isValid: false, shipName: input.shipName || 'Unknown' };
+        }
+
+        const {
+            shipName, length = 0, breadth = 0, staticDraft = 0,
+            draftTrim = 0, draftListing = 0, squat = 0, waveMotion = 0,
+            waterDepthAvailable = 0, environment
+        } = input;
+
+        const dynamicDraft = this.calculateDynamicDraft({ draftTrim, draftListing, squat, waveMotion });
+        const ukc = this.calculateUKCRequirement(environment, staticDraft, dynamicDraft);
+        const requiredDepth = this.calculateRequiredDepth(dynamicDraft, ukc);
+        const { status, safetyMargin, isSafe } = this.determineStatus(waterDepthAvailable, requiredDepth);
+
+        return {
+            isValid: true,
+            shipName, length, breadth, staticDraft, draftTrim, draftListing,
+            squat, waveMotion, waterDepthAvailable, environment,
+            dynamicDraft,
+            ukc: Math.round(ukc * 100) / 100,
+            requiredDepth,
+            status,
+            safetyMargin,
+            isSafe,
+            summary: {
+                totalDraft: Math.round((dynamicDraft + staticDraft) * 100) / 100,
+                availableMargin: Math.round((waterDepthAvailable - requiredDepth) * 100) / 100,
+                percentageMargin: waterDepthAvailable > 0 ? 
+                    Math.round(((waterDepthAvailable - requiredDepth) / waterDepthAvailable) * 100) : 0
+            }
+        };
+    }
+
+    checkWaypointSafety(waypoint, shipParams, environment) {
+        const { latitude, longitude, depth } = waypoint;
+        if (!depth) {
+            return { isSafe: false, error: 'No depth data available for this location' };
+        }
+        const result = this.calculate({
+            ...shipParams,
+            waterDepthAvailable: depth,
+            environment: environment || 'Coastal Water'
+        });
+        return {
+            waypoint: { latitude, longitude },
+            depth,
+            isSafe: result.isSafe,
+            status: result.status,
+            safetyMargin: result.safetyMargin,
+            requiredDepth: result.requiredDepth,
+            dynamicDraft: result.dynamicDraft,
+            ukc: result.ukc
+        };
+    }
+}
+
+// ============================================================
+// MAIN APPLICATION
+// ============================================================
+
+const MAPTILER_KEY = 'mP5EMYL63473c6VT5cg6';
+const map = L.map('map', { zoomControl: false }).setView([-2.5, 118], 5);
+L.tileLayer(`https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, {
     maxZoom: 20, tileSize: 512, zoomOffset: -1, attribution: ''
-  }).addTo(map);
+}).addTo(map);
 
-  let islands = [], waypoints = [], wpGraph = {}, wpReady = false, islandPolygons = [], currentMode = "BIGRU";
-  let routeMode = "AUTO";
-  let start = null, end = null, pickMode = null;
-  let routeLine = null, startMarker = null, endMarker = null, shipMarker = null, currentRouteCoords = [], animationInterval = null, isRouting = false;
-  let shipDatabase = [], activeShipTelemetry = null, ports = [];
-  let selectedDestPort = null;
-  let waypointMarkersLayer = [];
-  
-  // Depth zones data
-  let depthZones = [];
-  let depthPolygons = [];
-  let currentShipLength = 0;
-  let currentShipDraft = 0;
+// Initialize UKC Calculator
+const ukcCalculator = new UKCCalculator();
+let ukcShipParams = {
+    shipName: 'Active Vessel',
+    length: 0,
+    breadth: 0,
+    staticDraft: 0,
+    draftTrim: 0,
+    draftListing: 0,
+    squat: 0,
+    waveMotion: 0,
+    environment: 'Coastal Water'
+};
 
-  const WP_CONNECT_RADIUS = 3.0, WP_K_NEAR = 9, MAX_ITER = 250000;
-  function dist(a,b) { return Math.hypot(a[0]-b[0], a[1]-b[1]); }
-  function distKm(a,b) { const R=6371; const dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180; const lat1=a[0]*Math.PI/180, lat2=b[0]*Math.PI/180; const s=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return R*2*Math.atan2(Math.sqrt(s), Math.sqrt(1-s)); }
-  
-  // Enhanced pointInPolygon that handles both [lat,lng] and [lng,lat] detection
-  function pointInPolygon(p, vs) { 
+let islands = [], waypoints = [], wpGraph = {}, wpReady = false, islandPolygons = [], currentMode = "BIGRU";
+let routeMode = "AUTO";
+let start = null, end = null, pickMode = null;
+let routeLine = null, startMarker = null, endMarker = null, shipMarker = null, currentRouteCoords = [], animationInterval = null, isRouting = false;
+let shipDatabase = [], activeShipTelemetry = null, ports = [];
+let selectedDestPort = null;
+let waypointMarkersLayer = [];
+let depthZones = [], depthPolygons = [];
+let currentShipLength = 0, currentShipDraft = 0;
+let ukcWarningMarkers = [];
+let ukcAnalysisResult = null;
+
+const WP_CONNECT_RADIUS = 3.0, WP_K_NEAR = 9, MAX_ITER = 250000;
+
+function dist(a,b) { return Math.hypot(a[0]-b[0], a[1]-b[1]); }
+function distKm(a,b) { const R=6371; const dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180; const lat1=a[0]*Math.PI/180, lat2=b[0]*Math.PI/180; const s=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2; return R*2*Math.atan2(Math.sqrt(s), Math.sqrt(1-s)); }
+
+function pointInPolygon(p, vs) { 
     let inside = false;
     for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-      const xi = vs[i][0], yi = vs[i][1];
-      const xj = vs[j][0], yj = vs[j][1];
-      const intersect = ((yi > p[1]) != (yj > p[1])) && (p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi);
-      if (intersect) inside = !inside;
+        const xi = vs[i][0], yi = vs[i][1];
+        const xj = vs[j][0], yj = vs[j][1];
+        const intersect = ((yi > p[1]) != (yj > p[1])) && (p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
     }
     return inside;
-  }
-  
-  function isBlocked(lat,lng) { if(!islands.length) return false; for(const isl of islands) { if(isl.bbox && lat>=isl.bbox.minLat && lat<=isl.bbox.maxLat && lng>=isl.bbox.minLng && lng<=isl.bbox.maxLng && pointInPolygon([lat,lng], isl.polygon)) return true; } return false; }
-  
-  // Convert polygon from [lng,lat] to [lat,lng] if needed
-  function convertPolygonToLatLng(polygon) {
+}
+
+function isBlocked(lat,lng) { 
+    if(!islands.length) return false; 
+    for(const isl of islands) { 
+        if(isl.bbox && lat>=isl.bbox.minLat && lat<=isl.bbox.maxLat && lng>=isl.bbox.minLng && lng<=isl.bbox.maxLng && pointInPolygon([lat,lng], isl.polygon)) return true; 
+    } 
+    return false; 
+}
+
+function convertPolygonToLatLng(polygon) {
     if (!polygon || polygon.length === 0) return polygon;
-    // Check if first point seems to be [lng,lat] (longitude between -180-180, latitude between -90-90)
     const firstPoint = polygon[0];
     if (Math.abs(firstPoint[0]) <= 180 && Math.abs(firstPoint[1]) <= 90 && 
         (firstPoint[0] > 90 || firstPoint[0] < -90 || firstPoint[1] > -90)) {
-      // This is likely [lng,lat] format, convert to [lat,lng]
-      return polygon.map(p => [p[1], p[0]]);
+        return polygon.map(p => [p[1], p[0]]);
     }
     return polygon;
-  }
-  
-  // Get depth at a point (meters) - handles both coordinate formats
-  function getDepthAt(lat, lng) {
+}
+
+function getDepthAt(lat, lng) {
     if(!depthZones.length) return 999;
     for(const zone of depthZones) {
-      // Use the stored latLngPolygon
-      const polygon = zone.latLngPolygon || zone.polygon;
-      if(polygon && pointInPolygon([lat, lng], polygon)) {
-        return zone.depth;
-      }
+        const polygon = zone.latLngPolygon || zone.polygon;
+        if(polygon && pointInPolygon([lat, lng], polygon)) {
+            return zone.depth;
+        }
     }
     return 999;
-  }
-  
-  // Check if depth is safe for current ship
-  function isDepthSafe(depthMeters) {
-    const length = currentShipLength;
-    const draft = currentShipDraft;
+}
+
+// ============================================================
+// UKC-AWARE DEPTH SAFETY CHECK (REPLACES OLD isDepthSafe)
+// ============================================================
+
+function isDepthSafeUKC(depthMeters) {
+    if (!ukcShipParams.staticDraft && !ukcShipParams.length) return true;
     
-    if(length === 0 && draft === 0) return true;
+    const result = ukcCalculator.calculate({
+        ...ukcShipParams,
+        waterDepthAvailable: depthMeters,
+        environment: ukcShipParams.environment
+    });
     
-    let minSafeDepth = 0;
-    
-    if(length >= 100 && length <= 200) {
-      minSafeDepth = Math.max(20, draft + 5);
-    } 
-    else if(length >= 50 && length < 100) {
-      minSafeDepth = Math.max(13, draft + 4);
-    }
-    else if(length >= 20 && length < 50) {
-      minSafeDepth = Math.max(8, draft + 3);
-    }
-    else if(length >= 10 && length < 20) {
-      minSafeDepth = Math.max(2.5, draft + 2);
-    }
-    else if(length > 200) {
-      minSafeDepth = Math.max(25, draft + 6);
-    }
-    else {
-      minSafeDepth = draft + 1.5;
-    }
-    
-    return depthMeters >= minSafeDepth;
-  }
-  
-  function getWaypointSafety(wp) {
+    return result.isSafe;
+}
+
+function getWaypointSafetyUKC(wp) {
     const depth = getDepthAt(wp.lat, wp.lng);
-    const safe = isDepthSafe(depth);
-    return { depth, safe };
-  }
-  
-  function canSee(a,b,samples=22) { for(let i=1;i<samples;i++) { const t=i/samples, lat=a[0]+(b[0]-a[0])*t, lng=a[1]+(b[1]-a[1])*t; if(isBlocked(lat,lng)) return false; } return true; }
-  function setStatus(txt,color="#2c7a4d") { const el=document.getElementById('status'); el.innerText=txt; el.style.color=color; }
-  function setInfo(txt) { document.getElementById('infoBox').innerHTML = `<i class="fas fa-info-circle"></i> ${txt}`; }
-  function showProgress(p) { const pb=document.getElementById('progressBar'); pb.style.display='block'; document.getElementById('progressFill').style.width=Math.round(p*100)+'%'; }
-  function hideProgress() { document.getElementById('progressBar').style.display='none'; }
-  function clearIslandPolygons() { islandPolygons.forEach(p=>map.removeLayer(p)); islandPolygons=[]; }
-  function clearDepthPolygons() { depthPolygons.forEach(p=>map.removeLayer(p)); depthPolygons=[]; }
-  function stopAnimation() { if(animationInterval) { clearInterval(animationInterval); animationInterval=null; } }
-  function clearWaypointMarkers() { waypointMarkersLayer.forEach(m => map.removeLayer(m)); waypointMarkersLayer = []; }
-  
-  function smoothCurve(coords, steps=20) {
+    const result = ukcCalculator.calculate({
+        ...ukcShipParams,
+        waterDepthAvailable: depth,
+        environment: ukcShipParams.environment
+    });
+    return { 
+        depth, 
+        safe: result.isSafe,
+        ukc: result.ukc,
+        requiredDepth: result.requiredDepth,
+        safetyMargin: result.safetyMargin,
+        dynamicDraft: result.dynamicDraft,
+        status: result.status
+    };
+}
+
+function isDepthSafe(depthMeters) {
+    return isDepthSafeUKC(depthMeters);
+}
+
+function getWaypointSafety(wp) {
+    return getWaypointSafetyUKC(wp);
+}
+
+function canSee(a,b,samples=22) { 
+    for(let i=1;i<samples;i++) { 
+        const t=i/samples, lat=a[0]+(b[0]-a[0])*t, lng=a[1]+(b[1]-a[1])*t; 
+        if(isBlocked(lat,lng)) return false; 
+    } 
+    return true; 
+}
+
+function setStatus(txt,color="#2c7a4d") { 
+    const el=document.getElementById('status'); 
+    el.innerText=txt; 
+    el.style.color=color; 
+}
+
+function setInfo(txt) { 
+    document.getElementById('infoBox').innerHTML = `<i class="fas fa-info-circle"></i> ${txt}`; 
+}
+
+function showProgress(p) { 
+    const pb=document.getElementById('progressBar'); 
+    pb.style.display='block'; 
+    document.getElementById('progressFill').style.width=Math.round(p*100)+'%'; 
+}
+
+function hideProgress() { 
+    document.getElementById('progressBar').style.display='none'; 
+}
+
+function clearIslandPolygons() { islandPolygons.forEach(p=>map.removeLayer(p)); islandPolygons=[]; }
+function clearDepthPolygons() { depthPolygons.forEach(p=>map.removeLayer(p)); depthPolygons=[]; }
+function stopAnimation() { if(animationInterval) { clearInterval(animationInterval); animationInterval=null; } }
+function clearWaypointMarkers() { waypointMarkersLayer.forEach(m => map.removeLayer(m)); waypointMarkersLayer = []; }
+
+function clearUKCMarkers() {
+    ukcWarningMarkers.forEach(m => map.removeLayer(m));
+    ukcWarningMarkers = [];
+}
+
+function smoothCurve(coords, steps=20) {
     if(!coords||coords.length<2) return coords;
     if(coords.length===2) return coords;
-    function catmullRom(p0,p1,p2,p3,t) { const t2=t*t, t3=t2*t; return [0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3), 0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]; }
-    const smoothed=[coords[0]]; const n=coords.length;
-    for(let i=0;i<n-1;i++) { const p0=(i===0)?coords[0]:coords[i-1], p1=coords[i], p2=coords[i+1], p3=(i+2<n)?coords[i+2]:coords[i+1]; for(let s=1;s<=steps;s++) { const t=s/(steps+1); smoothed.push(catmullRom(p0,p1,p2,p3,t)); } if(i===n-2) smoothed.push(coords[i+1]); }
-    return smoothed;
-  }
-
-  function showWaypointMarkersFromPath(pathIds) {
-    clearWaypointMarkers();
-    if(!pathIds || pathIds.length === 0) return;
-    const wpIndices = pathIds.filter(id => typeof id === 'number');
-    for(let idx of wpIndices) {
-      const wp = waypoints[idx];
-      if(!wp || !wp.lat || !wp.lng) continue;
-      const { depth, safe } = getWaypointSafety(wp);
-      const marker = L.circleMarker([wp.lat, wp.lng], { 
-        radius: 6, 
-        fillColor: safe ? "#1f85c7" : "#e74c3c", 
-        color: "#ffffff", 
-        weight: 2, 
-        opacity: 1, 
-        fillOpacity: 0.9 
-      }).addTo(map);
-      const safetyIcon = safe ? "✅" : "⚠️";
-      const depthText = depth >= 999 ? "Deep (>999m)" : `${depth.toFixed(1)}m`;
-      marker.bindTooltip(`📍 ${wp.lat.toFixed(5)}°, ${wp.lng.toFixed(5)}°<br>🌊 ${depthText} ${safetyIcon}`, { 
-        permanent: false, 
-        direction: 'top', 
-        offset: [0, -10], 
-        className: `waypoint-marker-label ${!safe ? 'danger' : ''}` 
-      });
-      waypointMarkersLayer.push(marker);
+    function catmullRom(p0,p1,p2,p3,t) { 
+        const t2=t*t, t3=t2*t; 
+        return [0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3), 
+                0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]; 
     }
-  }
-
-  async function loadMode(modeName) {
-    currentMode = modeName; setStatus(`Memuat ${modeName}...`, "#f39c12");
-    islands = []; waypoints = []; wpGraph = {}; wpReady = false; 
-    clearIslandPolygons(); clearDepthPolygons(); clearWaypointMarkers();
-    if(routeLine) map.removeLayer(routeLine); if(startMarker) map.removeLayer(startMarker); if(endMarker) map.removeLayer(endMarker);
-    routeLine=startMarker=endMarker=null; start=end=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker);
-    
-    // Load kedalaman.json - FIXED: handle [lng,lat] format
-    try {
-      const depthRes = await fetch('kedalaman.json');
-      const depthData = await depthRes.json();
-      depthZones = depthData.depthZones || [];
-      
-      for(const zone of depthZones) {
-        if(!zone.polygon || zone.polygon.length < 3) continue;
-        
-        // Convert polygon to [lat,lng] format for point-in-polygon and Leaflet
-        const convertedPolygon = convertPolygonToLatLng(zone.polygon);
-        zone.latLngPolygon = convertedPolygon;
-        
-        // Close polygon if needed for display
-        let closedPolygon = [...convertedPolygon];
-        const first = convertedPolygon[0];
-        const last = convertedPolygon[convertedPolygon.length - 1];
-        if (first[0] !== last[0] || first[1] !== last[1]) {
-          closedPolygon = [...convertedPolygon, first];
+    const smoothed=[coords[0]]; 
+    const n=coords.length;
+    for(let i=0;i<n-1;i++) { 
+        const p0=(i===0)?coords[0]:coords[i-1], p1=coords[i], p2=coords[i+1], p3=(i+2<n)?coords[i+2]:coords[i+1]; 
+        for(let s=1;s<=steps;s++) { 
+            const t=s/(steps+1);
+            smoothed.push(catmullRom(p0,p1,p2,p3,t));
         }
+    }
+    smoothed.push(coords[coords.length-1]);
+    return smoothed;
+}
+
+// ============================================================
+// UPDATE UKC PARAMETERS FROM UI
+// ============================================================
+
+function updateUKCParamsFromUI() {
+    const length = parseFloat(document.getElementById('shipLength')?.value) || 0;
+    const draft = parseFloat(document.getElementById('shipDraft')?.value) || 0;
+    // Parse values, but keep empty string as 0 for calculation
+    const trim = parseFloat(document.getElementById('draftTrim')?.value) || 0;
+    const listing = parseFloat(document.getElementById('draftListing')?.value) || 0;
+    const squat = parseFloat(document.getElementById('squat')?.value) || 0;
+    const wave = parseFloat(document.getElementById('waveMotion')?.value) || 0;
+    const env = document.getElementById('environmentType')?.value || 'Coastal Water';
+    
+    ukcShipParams = {
+        ...ukcShipParams,
+        length: length,
+        staticDraft: draft,
+        draftTrim: trim,
+        draftListing: listing,
+        squat: squat,
+        waveMotion: wave,
+        environment: env
+    };
+    
+    currentShipLength = length;
+    currentShipDraft = draft;
+    
+    return ukcShipParams;
+}
+
+// ============================================================
+// DISPLAY UKC RESULTS
+// ============================================================
+
+function displayUKCResults(result) {
+    const panel = document.getElementById('ukcPanel');
+    if (!panel) return;
+    
+    panel.style.display = 'block';
+    
+    const badge = document.getElementById('ukcStatusBadge');
+    const isSafe = result.isSafe;
+    badge.textContent = result.status;
+    badge.className = 'status-badge ' + (isSafe ? '' : 'danger');
+    
+    document.getElementById('ukcDynamicDraft').textContent = result.dynamicDraft.toFixed(2);
+    document.getElementById('ukcRequired').textContent = result.ukc.toFixed(2);
+    document.getElementById('ukcReqDepth').textContent = result.requiredDepth.toFixed(2);
+    document.getElementById('ukcMargin').textContent = result.safetyMargin.toFixed(2);
+    
+    document.getElementById('ukcStaticDraft').textContent = result.staticDraft.toFixed(2);
+    document.getElementById('ukcTrim').textContent = result.draftTrim.toFixed(2);
+    document.getElementById('ukcListing').textContent = result.draftListing.toFixed(2);
+    document.getElementById('ukcSquat').textContent = result.squat.toFixed(2);
+    document.getElementById('ukcWave').textContent = result.waveMotion.toFixed(2);
+    document.getElementById('ukcEnvironment').textContent = result.environment;
+    
+    const info = document.getElementById('ukcDetailInfo');
+    info.innerHTML = `<i class="fas fa-info-circle"></i> Dynamic Draft: ${result.dynamicDraft.toFixed(2)}m | UKC: ${result.ukc.toFixed(2)}m | Status: ${result.status}`;
+}
+
+function analyzeAndDisplayUKCForWaypoint(lat, lng) {
+    const depth = getDepthAt(lat, lng);
+    updateUKCParamsFromUI();
+    
+    const result = ukcCalculator.calculate({
+        ...ukcShipParams,
+        waterDepthAvailable: depth,
+        environment: ukcShipParams.environment
+    });
+    
+    if (result.isValid) {
+        displayUKCResults(result);
+        return result;
+    }
+    return null;
+}
+
+// ============================================================
+// ANALYZE FULL ROUTE WITH UKC
+// ============================================================
+
+function analyzeRouteUKC(routeCoords) {
+    if (!routeCoords || routeCoords.length < 2) {
+        setStatus('⚠️ Rute belum digenerate atau tidak valid', '#c0392b');
+        return null;
+    }
+    
+    updateUKCParamsFromUI();
+    
+    let results = [];
+    let unsafeCount = 0;
+    let minSafetyMargin = Infinity;
+    let maxRequiredDepth = 0;
+    
+    for (let i = 0; i < routeCoords.length; i++) {
+        const [lat, lng] = routeCoords[i];
+        const depth = getDepthAt(lat, lng);
         
-        // Color based on depth
-        let fillColor, borderColor;
-        if(zone.depth < 10) { fillColor = "#ffcccc"; borderColor = "#cc0000"; }
-        else if(zone.depth < 20) { fillColor = "#ffaa66"; borderColor = "#cc6600"; }
-        else if(zone.depth < 50) { fillColor = "#88ccff"; borderColor = "#0066cc"; }
-        else { fillColor = "#66aaff"; borderColor = "#004499"; }
+        const result = ukcCalculator.calculate({
+            ...ukcShipParams,
+            waterDepthAvailable: depth,
+            environment: ukcShipParams.environment
+        });
         
-        depthPolygons.push(L.polygon(closedPolygon, {
-          color: borderColor,
-          weight: 1.5,
-          fillOpacity: 0.35,
-          fillColor: fillColor,
-          interactive: false
-        }).addTo(map).bindTooltip(`🌊 ${zone.name}<br>Kedalaman: ${zone.depth}m`, { sticky: true }));
-      }
-      
-      if(depthZones.length > 0) {
-        setStatus(`🌊 ${depthZones.length} zona kedalaman dimuat`, "#2c7a4d");
-      } else {
-        setStatus("⚠️ Tidak ada zona kedalaman", "#f39c12");
-      }
-    } catch(e) { 
-      console.log("kedalaman.json tidak ditemukan atau error:", e); 
-      setStatus("⚠️ kedalaman.json tidak ada", "#f39c12"); 
-      depthZones = []; 
+        const wpResult = {
+            index: i,
+            lat, lng, depth,
+            ...result,
+            isSafe: result.isSafe
+        };
+        results.push(wpResult);
+        
+        if (!result.isSafe) unsafeCount++;
+        if (result.safetyMargin < minSafetyMargin) minSafetyMargin = result.safetyMargin;
+        if (result.requiredDepth > maxRequiredDepth) maxRequiredDepth = result.requiredDepth;
     }
     
-    try { let wpFile = modeName==="BIGRU" ? 'waypoint2.json' : 'waypoint.json'; const res=await fetch(wpFile); const data=await res.json(); waypoints=(data.waypoints||data||[]).filter(w=>w.lat&&w.lng); setStatus(`📍 ${waypoints.length} waypoint`, "#2f7f5f"); } catch(e){ setStatus(`⚠️ Gagal muat data waypoint`, "#e67e22"); waypoints=[]; }
+    const analysis = {
+        totalWaypoints: routeCoords.length,
+        unsafeWaypoints: unsafeCount,
+        minSafetyMargin: minSafetyMargin === Infinity ? 0 : minSafetyMargin,
+        maxRequiredDepth,
+        results,
+        overallStatus: unsafeCount === 0 ? 'SAFE' : 'UNSAFE',
+        safePercentage: routeCoords.length > 0 ? 
+            ((routeCoords.length - unsafeCount) / routeCoords.length * 100) : 0
+    };
     
-    if(modeName==="BILTSM") {
-      try { const islRes=await fetch('islands.json'); const islData=await islRes.json(); islands=islData.islands||[]; for(const isl of islands) { if(!isl.polygon||isl.polygon.length<3) continue; if(isl.polygon[0]!==isl.polygon[isl.polygon.length-1]) isl.polygon.push(isl.polygon[0]); const lats=isl.polygon.map(p=>p[0]), lngs=isl.polygon.map(p=>p[1]); isl.bbox={minLat:Math.min(...lats)-0.02, maxLat:Math.max(...lats)+0.02, minLng:Math.min(...lngs)-0.02, maxLng:Math.max(...lngs)+0.02}; islandPolygons.push(L.polygon(isl.polygon,{color:'#e67e22',weight:1.2,fillOpacity:0.2,fillColor:'#c0392b',interactive:false}).addTo(map)); } setStatus(`🏝️ ${islands.length} pulau`, "#2c7a4d"); } catch(e){ setStatus("⚠️ islands.json tidak ada", "#f39c12"); }
-      try { const shipRes=await fetch('ship.json'); const shipJson=await shipRes.json(); shipDatabase=(shipJson.data&&Array.isArray(shipJson.data))?shipJson.data:[]; setStatus(`🚢 ${shipDatabase.length} kapal`, "#1f7e9e"); } catch(e){ shipDatabase=[]; setStatus("⚠️ ship.json tidak ditemukan", "#e67e22"); }
-      try { const portRes=await fetch('pelabuhan.json'); const portData=await portRes.json(); if(portData&&portData.features){ ports=portData.features.filter(f=>f.geometry).map(f=>({name:f.properties?.name||f.properties['name:id']||'Pelabuhan', lat:f.geometry.coordinates[1], lng:f.geometry.coordinates[0]})); setStatus(`⚓ ${ports.length} pelabuhan`, "#1f7e9e"); setupPortSearch(); } } catch(e){ console.log("pelabuhan.json opsional"); }
-    } else { islands=[]; setStatus(`🔹 BIGRU: tanpa pulau`, "#2f7f5f"); setInfo("Mode BIGRU: tanpa obstacle pulau"); }
-    buildWaypointGraph();
-  }
-
-  function buildWaypointGraph() { 
-    if(!waypoints.length) { wpReady=false; return; }
-    setStatus("Membangun graf...", "#f39c12");
-    wpGraph={};
-    for(let i=0;i<waypoints.length;i++) {
-      wpGraph[i]=[]; const dists=[];
-      for(let j=0;j<waypoints.length;j++) { if(i===j) continue; const d=dist([waypoints[i].lat,waypoints[i].lng],[waypoints[j].lat,waypoints[j].lng]); if(d<=WP_CONNECT_RADIUS) dists.push({j,d}); }
-      dists.sort((a,b)=>a.d-b.d);
-      for(let {j} of dists.slice(0,WP_K_NEAR)) { const a=[waypoints[i].lat,waypoints[i].lng], b=[waypoints[j].lat,waypoints[j].lng]; if(currentMode==="BIGRU"||!islands.length||canSee(a,b,18)) { if(!wpGraph[i].includes(j)) wpGraph[i].push(j); if(!wpGraph[j]) wpGraph[j]=[]; if(!wpGraph[j].includes(i)) wpGraph[j].push(i); } }
+    ukcAnalysisResult = analysis;
+    
+    const statusColor = analysis.overallStatus === 'SAFE' ? '#2c7a4d' : '#c0392b';
+    const statusMsg = analysis.overallStatus === 'SAFE' ?
+        `✅ Rute aman! Safety margin minimum: ${analysis.minSafetyMargin.toFixed(2)}m` :
+        `⚠️ ${analysis.unsafeWaypoints} waypoint tidak aman untuk dilintasi!`;
+    setStatus(statusMsg, statusColor);
+    
+    if (results.length > 0) {
+        const avgResult = results[Math.floor(results.length / 2)];
+        if (avgResult && avgResult.isValid) {
+            displayUKCResults(avgResult);
+        }
     }
-    wpReady=true;
-    setStatus(`✅ Graf siap · ${waypoints.length} titik`, "#2e7d64");
-  }
+    
+    clearUKCMarkers();
+    results.forEach((result) => {
+        if (!result.isSafe) {
+            const marker = L.marker([result.lat, result.lng], {
+                icon: L.divIcon({
+                    className: 'ukc-unsafe-marker',
+                    html: `<div style="background:#e74c3c;color:white;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:bold;border:2px solid #fff;white-space:nowrap;">⚠️ UKC: ${result.ukc.toFixed(1)}m</div>`,
+                    iconSize: [80, 20],
+                    iconAnchor: [40, 10]
+                })
+            }).addTo(map);
+            ukcWarningMarkers.push(marker);
+        }
+    });
+    
+    return analysis;
+}
 
-  function findNearestWaypoints(coord,k=10) { return waypoints.map((wp,i)=>({i,d:dist(coord,[wp.lat,wp.lng])})).sort((a,b)=>a.d-b.d).slice(0,k); }
-  function pickReachable(coord,candidates) { if(currentMode==="BIGRU"||!islands.length) return candidates.slice(0,4); const reachable=candidates.filter(({i})=>canSee(coord,[waypoints[i].lat,waypoints[i].lng],24)); return reachable.length?reachable.slice(0,4):candidates.slice(0,2); }
-  class MinHeap{constructor(){this.h=[];}push(i){this.h.push(i);this._up(this.h.length-1);}pop(){const t=this.h[0],l=this.h.pop();if(this.h.length){this.h[0]=l;this._down(0);}return t;}_up(i){while(i>0){const p=(i-1)>>1;if(this.h[p][0]<=this.h[i][0])break;[this.h[p],this.h[i]]=[this.h[i],this.h[p]];i=p;}}_down(i){const n=this.h.length;while(true){let s=i,l=2*i+1,r=2*i+2;if(l<n&&this.h[l][0]<this.h[s][0])s=l;if(r<n&&this.h[r][0]<this.h[s][0])s=r;if(s===i)break;[this.h[i],this.h[s]]=[this.h[s],this.h[i]];i=s;}}get size(){return this.h.length;}}
-  function astarWithVirtual(srcId,dstId,extraEdges,coordOf){const heap=new MinHeap();heap.push([0,srcId]);const g=new Map([[srcId,0]]);const came=new Map();const vis=new Set();let iter=0;while(heap.size&&iter++<MAX_ITER){const[,cur]=heap.pop();if(vis.has(cur))continue;vis.add(cur);if(cur===dstId){const path=[];let c=cur;while(came.has(c)){path.push(c);c=came.get(c);}path.push(srcId);return path.reverse();}const neighbors=[...(extraEdges[cur]||[]),...(typeof cur==='number'?(wpGraph[cur]||[]):[])];for(const nb of neighbors){if(vis.has(nb))continue;const ng=(g.get(cur)||0)+dist(coordOf(cur),coordOf(nb));if(ng<(g.get(nb)??Infinity)){g.set(nb,ng);came.set(nb,cur);const h=dist(coordOf(nb),coordOf(dstId));heap.push([ng+h,nb]);}}}return null;}
+// ============================================================
+// UI EVENT HANDLERS
+// ============================================================
 
-  async function runRoute() {
-    if(!start){ alert("⚠️ Belum ada kapal! Cari MMSI terlebih dahulu."); return; }
-    if(!end){ alert("⚠️ Belum ada pelabuhan tujuan! Pilih tujuan."); return; }
-    if(isRouting) return;
-    if(!wpReady||waypoints.length===0){alert("Data waypoint belum siap."); return;}
+document.getElementById('runRouteBtn')?.addEventListener('click', function() {
+    updateUKCParamsFromUI();
     
-    const lengthInput = document.getElementById('shipLength').value;
-    const draftInput = document.getElementById('shipDraft').value;
-    currentShipLength = lengthInput ? parseFloat(lengthInput) : (activeShipTelemetry?.length || 0);
-    currentShipDraft = draftInput ? parseFloat(draftInput) : (activeShipTelemetry?.draft || 0);
-    
-    const startDepth = getDepthAt(start[0], start[1]);
-    const endDepth = getDepthAt(end[0], end[1]);
-    let warningMsg = "";
-    if(!isDepthSafe(startDepth)) warningMsg += `⚠️ START di kedalaman ${startDepth.toFixed(1)}m (tidak aman untuk kapal ini)! `;
-    if(!isDepthSafe(endDepth)) warningMsg += `⚠️ TUJUAN di kedalaman ${endDepth.toFixed(1)}m (tidak aman untuk kapal ini)! `;
-    if(warningMsg) setInfo(warningMsg);
-    
-    isRouting=true; showProgress(0.1); setStatus("Mencari rute...","#f39c12");
-    if(islands.length&&(isBlocked(start[0],start[1])||isBlocked(end[0],end[1]))){alert("Start atau tujuan di daratan!"); setStatus("❌","red"); isRouting=false; hideProgress(); return;}
-    const startCands=findNearestWaypoints(start,14), endCands=findNearestWaypoints(end,14);
-    const startWPs=pickReachable(start,startCands), endWPs=pickReachable(end,endCands);
-    if(!startWPs.length||!endWPs.length){setStatus("❌ Tidak terhubung ke waypoint","red"); isRouting=false; hideProgress(); return;}
-    showProgress(0.35);
-    const extraEdges={'S':[],'E':[]}; for(const {i} of startWPs){extraEdges['S'].push(i); if(!extraEdges[i]) extraEdges[i]=[]; extraEdges[i].push('S');} for(const {i} of endWPs){extraEdges['E'].push(i); if(!extraEdges[i]) extraEdges[i]=[]; extraEdges[i].push('E');}
-    const coordOf=id=>{if(id==='S') return start; if(id==='E') return end; return [waypoints[id].lat,waypoints[id].lng];};
-    const pathIds=astarWithVirtual('S','E',extraEdges,coordOf); showProgress(0.85);
-    if(!pathIds||pathIds.length<2){if(canSee(start,end,45)){drawRouteAsCurve([start,end]); setStatus(`✅ Jalur Langsung: ${distKm(start,end).toFixed(1)} km`,"#2ecc71"); showWaypointMarkersFromPath([]);}else{setStatus("❌ Rute tidak ditemukan","red");} showProgress(1); setTimeout(hideProgress,500); isRouting=false; return;}
-    const rawCoords=pathIds.map(id=>coordOf(id)); drawRouteAsCurve(rawCoords);
-    let totalKm=0; let unsafeWaypointsCount = 0;
-    for(let i=1;i<rawCoords.length;i++) totalKm+=distKm(rawCoords[i-1],rawCoords[i]);
-    for(let id of pathIds) {
-      if(typeof id === 'number') {
-        const { safe } = getWaypointSafety(waypoints[id]);
-        if(!safe) unsafeWaypointsCount++;
-      }
+    if (!ukcShipParams.staticDraft || !ukcShipParams.length) {
+        setStatus('⚠️ Mohon isi panjang dan draft kapal terlebih dahulu', '#c0392b');
+        return;
     }
-    const safetyNote = unsafeWaypointsCount > 0 ? ` ⚠️ ${unsafeWaypointsCount} waypoint tidak aman (kedalaman)` : " ✅ Semua waypoint aman";
-    setStatus(`✅ ${totalKm.toFixed(1)} km · ${(totalKm/1.852).toFixed(0)} nm${safetyNote}`,`${unsafeWaypointsCount>0 ? "#e67e22" : "#2c8c6e"}`);
-    setInfo(`Rute: ${totalKm.toFixed(1)} km | ${pathIds.filter(id=>typeof id==='number').length} waypoint | ${unsafeWaypointsCount} tidak aman (arahkan kursor ke titik)`);
-    showProgress(1); setTimeout(hideProgress,600); isRouting=false;
-    showWaypointMarkersFromPath(pathIds);
-  }
-  
-  function drawRouteAsCurve(coords){ currentRouteCoords=coords; const smoothed=smoothCurve(coords,25); if(routeLine) map.removeLayer(routeLine); routeLine=L.polyline(smoothed,{color:'#1f85c7',weight:5,opacity:0.9}).addTo(map); map.fitBounds(routeLine.getBounds(),{padding:[50,50]}); }
-  function createShipIcon(){ const sog=activeShipTelemetry?.sog||0; const cog=activeShipTelemetry?.cog||'?'; const lengthVal=currentShipLength||activeShipTelemetry?.length||0; const draftVal=currentShipDraft||activeShipTelemetry?.draft||0; return L.divIcon({html:`<div style="background:#0a4c6e;border-radius:24px;padding:4px 12px;color:white;font-weight:600;font-size:10px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4);border-left:3px solid #f1c40f;display:flex;align-items:center;gap:6px;"><i class="fas fa-ship"></i><span>⚡${sog}kn</span><span>🧭${cog}°</span><span>📏${lengthVal}m</span><span>🌊${draftVal}m</span></div>`, iconSize:[170,28], iconAnchor:[85,14] }); }
-  function startAnimation(){ if(!currentRouteCoords.length){alert("Tidak ada rute."); return;} stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); shipMarker=L.marker(currentRouteCoords[0],{icon:createShipIcon()}).addTo(map); map.setView(currentRouteCoords[0],12); let seg=0,t=0; animationInterval=setInterval(()=>{ if(seg>=currentRouteCoords.length-1){ stopAnimation(); setStatus("✅ Kapal tiba di pelabuhan tujuan.","#2c8c6e"); return; } const p1=currentRouteCoords[seg], p2=currentRouteCoords[seg+1]; t+=0.008; if(t>=1){ t=0; seg++; if(seg<currentRouteCoords.length) shipMarker.setLatLng(currentRouteCoords[seg]); } else { shipMarker.setLatLng([p1[0]+(p2[0]-p1[0])*t, p1[1]+(p2[1]-p1[1])*t]); } shipMarker.setIcon(createShipIcon()); if(activeShipTelemetry) updateTelemetryUI(activeShipTelemetry); },80); setStatus("🚢 Animasi kapal berjalan","#2c9b6e"); if(activeShipTelemetry) document.getElementById('liveTelemetryPanel').style.display='block'; }
-  function updateTelemetryUI(d){ if(!d) return; document.getElementById('liveMmsi').innerText=d.mmsi||'---'; document.getElementById('liveSog').innerText=(d.sog||0).toFixed(1); document.getElementById('liveCog').innerText=d.cog||'---'; document.getElementById('liveHdg').innerText=d.hdg||'---'; document.getElementById('liveUtc').innerText=d.utc||'--'; document.getElementById('liveClass').innerText=d.class||'A'; document.getElementById('liveRot').innerText=d.rot||0; document.getElementById('liveLength').innerText=currentShipLength||d.length||0; document.getElementById('liveDraft').innerText=(currentShipDraft||d.draft||0).toFixed(1); if(d.lat && d.lon) document.getElementById('liveCoord').innerText=`${d.lat.toFixed(4)}°, ${d.lon.toFixed(4)}°`; else document.getElementById('liveCoord').innerText='--'; let navText = "Underway"; if(d.navstatus === 1) navText = "At anchor"; else if(d.navstatus === 5) navText = "Moored"; document.getElementById('navStatusBadge').innerText=navText; }
-  function fetchShipByMMSI(){ const mmsi = document.getElementById('shipMMSI').value.trim(); if(!mmsi){ alert("Masukkan MMSI!"); return; } if(!shipDatabase.length){ alert("Data kapal belum dimuat. Pilih mode BILTSM dulu."); return; } const found = shipDatabase.find(s => s.mmsi === mmsi); if(!found){ alert(`MMSI ${mmsi} tidak ditemukan`); return; } const manualLength = document.getElementById('shipLength').value; const manualDraft = document.getElementById('shipDraft').value; currentShipLength = manualLength !== "" ? parseFloat(manualLength) : (found.length || 0); currentShipDraft = manualDraft !== "" ? parseFloat(manualDraft) : (found.draft || 0); activeShipTelemetry = { ...found, length: currentShipLength, draft: currentShipDraft }; document.getElementById('shipLength').value = currentShipLength; document.getElementById('shipDraft').value = currentShipDraft; if(found.lon !== undefined && found.lat !== undefined){ start = [found.lat, found.lon]; document.getElementById('startLat').value = found.lat.toFixed(6); document.getElementById('startLng').value = found.lon.toFixed(6); if(startMarker) map.removeLayer(startMarker); startMarker = L.marker([found.lat, found.lon], { icon: L.divIcon({html:`<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`, iconSize:[28,28], iconAnchor:[14,28]}) }).addTo(map).bindPopup(`START: ${found.mmsi}`).openPopup(); setStatus(`🛳️ Kapal ${mmsi} sebagai START`, "#1f8a6b"); if(routeLine){ map.removeLayer(routeLine); routeLine=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); clearWaypointMarkers(); } map.setView([found.lat, found.lon], 12); } else { alert("Koordinat kapal tidak valid"); } updateTelemetryUI(activeShipTelemetry); document.getElementById('liveTelemetryPanel').style.display = 'block'; }
-  function setupPortSearch() { const destInput = document.getElementById('destSearchInput'); const destResults = document.getElementById('destSearchResults'); destInput.addEventListener('input', function() { const q = this.value.toLowerCase().trim(); if(q.length<2 || !ports.length){ destResults.style.display='none'; return; } const filtered = ports.filter(p=>p.name.toLowerCase().includes(q)).slice(0,10); if(!filtered.length){ destResults.style.display='none'; return; } destResults.innerHTML = filtered.map(p=>`<div class="search-result-item" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name.replace(/"/g,'&quot;')}"><div class="result-name">${p.name}</div><div class="result-coord">${p.lat.toFixed(4)}°, ${p.lng.toFixed(4)}°</div></div>`).join(''); destResults.style.display='block'; document.querySelectorAll(`#destSearchResults .search-result-item`).forEach(el=>{ el.addEventListener('click',()=>{ selectDestPort(parseFloat(el.dataset.lat), parseFloat(el.dataset.lng), el.dataset.name); destResults.style.display='none'; destInput.value=el.dataset.name; }); }); }); document.addEventListener('click', (e) => { if(!destInput.contains(e.target)&&!destResults.contains(e.target)) destResults.style.display='none'; }); }
-  function selectDestPort(lat, lng, name) { selectedDestPort = {lat,lng,name}; end = [lat,lng]; document.getElementById('selectedDestName').innerHTML = `<i class="fas fa-flag-checkered"></i> ${name} (${lat.toFixed(4)}, ${lng.toFixed(4)})`; document.getElementById('selectedDestDisplay').style.display = 'flex'; if(endMarker) map.removeLayer(endMarker); endMarker = L.marker([lat,lng], { icon: L.divIcon({html:`<i class="fas fa-flag-checkered" style="font-size:28px; color:#d97706;"></i>`, iconSize:[28,28], iconAnchor:[14,28]}) }).addTo(map).bindPopup(`TUJUAN: ${name}`).openPopup(); setStatus(`🏁 Tujuan: ${name}`, "#d97706"); if(routeLine){ map.removeLayer(routeLine); routeLine=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); clearWaypointMarkers(); } }
-  function randomDestPort() { if(!ports.length){alert("Tidak ada data pelabuhan."); return;} const random = ports[Math.floor(Math.random()*ports.length)]; selectDestPort(random.lat, random.lng, random.name); document.getElementById('destSearchInput').value=random.name; }
-  function clearDest() { selectedDestPort=null; end=null; document.getElementById('selectedDestDisplay').style.display='none'; document.getElementById('destSearchInput').value=''; if(endMarker) map.removeLayer(endMarker); endMarker=null; setStatus("Tujuan dibatalkan","#447799"); if(routeLine){ map.removeLayer(routeLine); routeLine=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); clearWaypointMarkers(); } }
-  function clearAll(){ if(isRouting) return; if(routeLine) map.removeLayer(routeLine); if(startMarker) map.removeLayer(startMarker); if(endMarker) map.removeLayer(endMarker); if(shipMarker) map.removeLayer(shipMarker); stopAnimation(); start=end=null; selectedDestPort=null; activeShipTelemetry=null; routeLine=startMarker=endMarker=shipMarker=null; currentRouteCoords=[]; document.getElementById('startLat').value=''; document.getElementById('startLng').value=''; document.getElementById('endLat').value=''; document.getElementById('endLng').value=''; document.getElementById('destSearchInput').value=''; document.getElementById('shipLength').value=''; document.getElementById('shipDraft').value=''; document.getElementById('selectedDestDisplay').style.display='none'; setStatus("Reset selesai.","#447799"); setInfo("Mode aktif."); document.getElementById('liveTelemetryPanel').style.display='none'; clearWaypointMarkers(); }
-  function setPickMode(m){ if(isRouting) return; pickMode=m; setStatus(`🖱️ Klik di peta untuk ${pickMode==='start'?'START':'FINISH'}`,"#2266aa"); }
-  function applyStartFromInput(){ let lat=parseFloat(document.getElementById('startLat').value), lng=parseFloat(document.getElementById('startLng').value); if(isNaN(lat)||isNaN(lng)){alert("Masukkan angka valid"); return;} start=[lat,lng]; if(startMarker) map.removeLayer(startMarker); startMarker=L.marker([lat,lng],{icon:L.divIcon({html:`<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`, iconSize:[28,28], iconAnchor:[14,28]})}).addTo(map).bindPopup("START").openPopup(); setStatus(`✅ Start: ${lat.toFixed(5)}, ${lng.toFixed(5)}`,"#1f7a5c"); if(routeLine){ map.removeLayer(routeLine); routeLine=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); clearWaypointMarkers(); } }
-  function setRouteMode(mode){ routeMode=mode; if(mode==="AUTO"){ document.getElementById('autoModePanel').style.display='block'; document.getElementById('manualModePanel').style.display='none'; document.getElementById('routeModeAutoBtn').classList.add('active'); document.getElementById('routeModeManualBtn').classList.remove('active'); setInfo("Mode AUTO: pilih kapal (MMSI) & pelabuhan tujuan."); } else { document.getElementById('autoModePanel').style.display='none'; document.getElementById('manualModePanel').style.display='block'; document.getElementById('routeModeManualBtn').classList.add('active'); document.getElementById('routeModeAutoBtn').classList.remove('active'); setInfo("Mode MANUAL: tentukan start & end sendiri."); } }
-  function updateEndFromInput(){ if(routeMode==="MANUAL"){ let lat=parseFloat(document.getElementById('endLat').value), lng=parseFloat(document.getElementById('endLng').value); if(!isNaN(lat)&&!isNaN(lng)){ end=[lat,lng]; if(endMarker) map.removeLayer(endMarker); endMarker=L.marker([lat,lng],{icon:L.divIcon({html:`<i class="fas fa-flag-checkered" style="font-size:28px; color:#d97706;"></i>`, iconSize:[28,28], iconAnchor:[14,28]})}).addTo(map).bindPopup("FINISH").openPopup(); setStatus(`🏁 Finish: ${lat.toFixed(5)}, ${lng.toFixed(5)}`,"#d97706"); } } }
+    
+    if (currentRouteCoords && currentRouteCoords.length >= 2) {
+        const analysis = analyzeRouteUKC(currentRouteCoords);
+        if (analysis) {
+            console.log('UKC Analysis:', analysis);
+        }
+    } else {
+        setStatus('⚠️ Rute belum digenerate. Buat rute terlebih dahulu.', '#c0392b');
+    }
+});
 
-  document.getElementById('modeBigruBtn').addEventListener('click',()=>{ loadMode("BIGRU"); document.getElementById('modeBigruBtn').classList.add('active'); document.getElementById('modeBiltsmBtn').classList.remove('active'); });
-  document.getElementById('modeBiltsmBtn').addEventListener('click',()=>{ loadMode("BILTSM"); document.getElementById('modeBiltsmBtn').classList.add('active'); document.getElementById('modeBigruBtn').classList.remove('active'); });
-  document.getElementById('routeModeAutoBtn').addEventListener('click',()=>setRouteMode("AUTO"));
-  document.getElementById('routeModeManualBtn').addEventListener('click',()=>setRouteMode("MANUAL"));
-  document.getElementById('applyStartBtn').addEventListener('click', applyStartFromInput);
-  document.getElementById('pickStartMapBtn').addEventListener('click',()=>setPickMode('start'));
-  document.getElementById('pickEndMapBtn').addEventListener('click',()=>setPickMode('end'));
-  document.getElementById('runRouteBtn').addEventListener('click',()=>{ if(routeMode==="MANUAL") updateEndFromInput(); runRoute(); });
-  document.getElementById('animateBtn').addEventListener('click', startAnimation);
-  document.getElementById('clearAllBtn').addEventListener('click', clearAll);
-  document.getElementById('fetchShipByMmsiBtn').addEventListener('click', fetchShipByMMSI);
-  document.getElementById('autoSelectRandomDestBtn').addEventListener('click', randomDestPort);
-  document.getElementById('clearDestBtn')?.addEventListener('click', clearDest);
-  map.on('click',e=>{ if(!pickMode||isRouting) return; const {lat,lng}=e.latlng; if(islands.length&&isBlocked(lat,lng)){alert("❌ Titik di daratan!"); return;} if(pickMode==='start'){ start=[lat,lng]; if(startMarker) map.removeLayer(startMarker); startMarker=L.marker([lat,lng],{icon:L.divIcon({html:`<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`, iconSize:[28,28], iconAnchor:[14,28]})}).addTo(map).bindPopup("START").openPopup(); document.getElementById('startLat').value=lat.toFixed(6); document.getElementById('startLng').value=lng.toFixed(6); setStatus(`📍 Start dari peta: ${lat.toFixed(5)}`); } else { end=[lat,lng]; if(endMarker) map.removeLayer(endMarker); endMarker=L.marker([lat,lng],{icon:L.divIcon({html:`<i class="fas fa-flag-checkered" style="font-size:28px; color:#d97706;"></i>`, iconSize:[28,28], iconAnchor:[14,28]})}).addTo(map).bindPopup("FINISH").openPopup(); if(routeMode==="MANUAL"){ document.getElementById('endLat').value=lat.toFixed(6); document.getElementById('endLng').value=lng.toFixed(6); } setStatus(`🏁 Finish dari peta: ${lat.toFixed(5)}`); } if(routeLine){ map.removeLayer(routeLine); routeLine=null; currentRouteCoords=[]; stopAnimation(); if(shipMarker) map.removeLayer(shipMarker); clearWaypointMarkers(); } pickMode=null; });
+document.getElementById('fetchShipByMmsiBtn')?.addEventListener('click', function() {
+    updateUKCParamsFromUI();
+    setStatus('✅ Parameter kapal diperbarui untuk perhitungan UKC', '#2c7a4d');
+});
 
-  const nav=document.getElementById('marineNav'), toggleNavBtn=document.getElementById('navToggleBtn'), toggleIconSpan=document.getElementById('toggleIcon');
-  function toggleNav(){ nav.classList.toggle('collapsed'); toggleIconSpan.className=nav.classList.contains('collapsed')?'fas fa-chevron-down':'fas fa-chevron-up'; }
-  toggleNavBtn.addEventListener('click',(e)=>{ e.stopPropagation(); toggleNav(); });
-  document.getElementById('navHeader').addEventListener('click',(e)=>{ if(e.target!==toggleNavBtn&&!toggleNavBtn.contains(e.target)) toggleNav(); });
+document.getElementById('clearAllBtn')?.addEventListener('click', function() {
+    clearUKCMarkers();
+    const panel = document.getElementById('ukcPanel');
+    if (panel) panel.style.display = 'none';
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+    if (startMarker) { map.removeLayer(startMarker); startMarker = null; }
+    if (endMarker) { map.removeLayer(endMarker); endMarker = null; }
+    if (shipMarker) { map.removeLayer(shipMarker); shipMarker = null; }
+    currentRouteCoords = [];
+    ukcAnalysisResult = null;
+    setStatus('✅ Reset selesai', '#2c7a4d');
+});
 
-  loadMode("BILTSM"); setRouteMode("AUTO"); document.getElementById('modeBiltsmBtn').classList.add('active'); setStatus("🌊 Pilih kapal via MMSI, lalu pilih pelabuhan tujuan. Waypoint berwarna merah jika kedalaman tidak aman","#2f9e6b");
+map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    const depth = getDepthAt(lat, lng);
+    const result = analyzeAndDisplayUKCForWaypoint(lat, lng);
+    if (result) {
+        setInfo(`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} | Depth: ${depth.toFixed(1)}m | UKC: ${result.ukc.toFixed(2)}m | ${result.status}`);
+    }
+});
+
+// Expose functions globally
+window.analyzeRouteUKC = analyzeRouteUKC;
+window.analyzeAndDisplayUKCForWaypoint = analyzeAndDisplayUKCForWaypoint;
+window.updateUKCParamsFromUI = updateUKCParamsFromUI;
+window.UKCCalculator = UKCCalculator;
+window.ukcCalculator = ukcCalculator;
+window.isDepthSafeUKC = isDepthSafeUKC;
+window.getWaypointSafetyUKC = getWaypointSafetyUKC;
+window.clearUKCMarkers = clearUKCMarkers;
+
+console.log('✅ UKC Module integrated successfully with SeaRoute Pro');
+
+setStatus('✅ Sistem siap. Masukkan data kapal untuk perhitungan UKC.', '#2c7a4d');
 </script>
 </body>
 </html>
