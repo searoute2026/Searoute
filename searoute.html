@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <title>SeaRoute Pro · AIS Telemetry & Marine Route Planner (UKC-Aware)</title>
+    <title>SeaRoute Pro · AIS Telemetry & Marine Route Planner (UKC-AWARE)</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -707,11 +707,18 @@
                 </div>
                 <div class="flex-row">
                     <input type="number" id="ukcWaveMotion" placeholder="Wave (m)" value="0" step="0.1" min="0">
-                    <input type="number" id="ukcWaterDepth" placeholder="Kedalaman (m)" value="0" step="0.1" min="0">
+                    <!-- KOLOM KEDALAMAN DIHAPUS -->
                     <select id="ukcEnvironment" style="flex:1; background:white; border:1px solid #d4e2ec; border-radius:48px; padding:10px 12px; font-size:0.7rem; color:#144f68;">
                         <option value="Port Approach">Port Approach</option>
                         <option value="Coastal Water">Coastal Water</option>
                     </select>
+                </div>
+
+                <!-- Tombol untuk mengambil kedalaman dari waypoint -->
+                <div class="flex-row">
+                    <button id="getDepthFromWaypointBtn" style="flex:1; background:#d4eaf3; border:1px solid #cde0ec; padding:8px 12px; border-radius:40px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; color:#196f8f;">
+                        <i class="fas fa-download"></i> Ambil Kedalaman dari Waypoint
+                    </button>
                 </div>
 
                 <div class="ukc-action-row">
@@ -867,11 +874,78 @@
             listingDraft: 0,
             squat: 0,
             waveMotion: 0,
-            waterDepth: 0,
+            waterDepth: 0, // tetap ada untuk perhitungan internal, tapi diisi dari waypoint/kedalaman.json
             environment: 'Port Approach'
         };
 
         let lastUkcResult = null;
+
+        // Fungsi untuk mengambil kedalaman dari waypoint terdekat atau dari kedalaman.json
+        function getDepthFromData(lat, lng) {
+            // Cek dari kedalaman.json dulu
+            const depth = getDepthAt(lat, lng);
+            if (depth !== 999) return depth;
+            
+            // Jika tidak ditemukan, cari waypoint terdekat
+            if (!waypoints.length) return 999;
+            let nearest = null;
+            let minDist = Infinity;
+            for (const wp of waypoints) {
+                const d = dist([lat, lng], [wp.lat, wp.lng]);
+                if (d < minDist) {
+                    minDist = d;
+                    nearest = wp;
+                }
+            }
+            if (nearest && minDist < 1.0) { // dalam radius 1 derajat
+                return getDepthAt(nearest.lat, nearest.lng);
+            }
+            return 999;
+        }
+
+        // Fungsi untuk mengambil kedalaman dari waypoint yang dipilih
+        function getDepthFromSelectedWaypoint() {
+            // Ambil posisi dari start atau waypoint terdekat
+            if (!start) {
+                alert('⚠️ Tidak ada posisi START! Cari kapal atau tentukan START terlebih dahulu.');
+                return;
+            }
+            
+            const lat = start[0];
+            const lng = start[1];
+            const depth = getDepthFromData(lat, lng);
+            
+            if (depth === 999) {
+                alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi ini. Pastikan data kedalaman.json dan waypoint telah dimuat.');
+                return;
+            }
+            
+            // Isi kolom kedalaman internal dan tampilkan di result
+            ukcInputs.waterDepth = depth;
+            document.getElementById('ukcWaterDepthDisplay')?.remove();
+            
+            // Tampilkan informasi di result
+            const resultDiv = document.getElementById('ukcResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'ukc-result';
+            resultDiv.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <i class="fas fa-info-circle" style="color:#249bc7;"></i>
+                    <span style="font-weight:600;">Kedalaman dari data:</span>
+                    <span style="font-weight:700; color:#016e8c;">${depth.toFixed(1)} m</span>
+                    <span style="font-size:0.6rem; color:#5a7e92;">(dari ${depthZones.length > 0 ? 'kedalaman.json' : 'waypoint'})</span>
+                </div>
+                <div style="font-size:0.6rem; color:#5a7e92;">
+                    Lokasi: ${lat.toFixed(4)}°, ${lng.toFixed(4)}°
+                </div>
+                <div style="margin-top:6px; font-size:0.6rem; color:#2d6d89;">
+                    <i class="fas fa-arrow-right"></i> Tekan "Hitung UKC" untuk analisis lengkap.
+                </div>
+            `;
+            
+            setStatus(`✅ Kedalaman ${depth.toFixed(1)}m diambil dari data`, "#27ae60");
+            setInfo(`Kedalaman: ${depth.toFixed(1)}m (dari ${depthZones.length > 0 ? 'kedalaman.json' : 'waypoint'})`);
+        }
 
         function calculateUKC(inputs) {
             const numericFields = ['length', 'breadth', 'staticDraft', 'trimDraft', 'listingDraft', 'squat', 'waveMotion',
@@ -1523,7 +1597,7 @@
                 setStatus(`🏁 Finish: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "#d97706"); } } }
 
         // ============================================================
-        // UKC HANDLER
+        // UKC HANDLER - Modified to use depth from waypoint/kedalaman.json
         // ============================================================
         function handleUkcCalculation() {
             const shipName = document.getElementById('ukcShipName').value || 'Unknown';
@@ -1534,8 +1608,25 @@
             const listingDraft = parseFloat(document.getElementById('ukcListingDraft').value) || 0;
             const squat = parseFloat(document.getElementById('ukcSquat').value) || 0;
             const waveMotion = parseFloat(document.getElementById('ukcWaveMotion').value) || 0;
-            const waterDepth = parseFloat(document.getElementById('ukcWaterDepth').value) || 0;
             const environment = document.getElementById('ukcEnvironment').value;
+
+            // Gunakan kedalaman dari data (sudah diisi oleh getDepthFromSelectedWaypoint atau dari input internal)
+            let waterDepth = ukcInputs.waterDepth;
+
+            // Jika masih 0, coba ambil dari posisi start atau waypoint terdekat
+            if (waterDepth === 0 || waterDepth === undefined) {
+                if (start) {
+                    waterDepth = getDepthFromData(start[0], start[1]);
+                    if (waterDepth === 999) {
+                        alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi START. Klik "Ambil Kedalaman dari Waypoint" terlebih dahulu.');
+                        return;
+                    }
+                    ukcInputs.waterDepth = waterDepth;
+                } else {
+                    alert('⚠️ Tidak ada posisi START. Cari kapal atau tentukan START terlebih dahulu, lalu klik "Ambil Kedalaman dari Waypoint".');
+                    return;
+                }
+            }
 
             ukcInputs = { shipName, length, breadth, staticDraft, trimDraft, listingDraft, squat, waveMotion,
                 waterDepth, environment };
@@ -1555,8 +1646,8 @@
                 alert(`⚠️ Dynamic Draft (${dynamicDraft.toFixed(2)}m) melebihi kedalaman air (${waterDepth.toFixed(2)}m)!`);
             }
 
-            if (staticDraft === 0 && waterDepth === 0) {
-                alert('Harap isi setidaknya Static Draft dan Water Depth!');
+            if (staticDraft === 0) {
+                alert('Harap isi Static Draft (T) kapal!');
                 return;
             }
 
@@ -1575,6 +1666,9 @@
             let warningHtml = result.warning ?
                 `<div style="color:#e67e22;font-weight:600;margin-bottom:4px;">${result.warning}</div>` : '';
 
+            // Tampilkan sumber kedalaman
+            const depthSource = depthZones.length > 0 ? 'kedalaman.json' : 'waypoint';
+
             resultDiv.innerHTML = `
                 ${warningHtml}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1585,7 +1679,7 @@
                   <div class="item"><span class="label">Dynamic Draft</span><span class="value">${result.dynamicDraft.toFixed(2)} m</span></div>
                   <div class="item"><span class="label">UKC Required</span><span class="value">${result.ukc.toFixed(2)} m</span></div>
                   <div class="item"><span class="label">Required Depth</span><span class="value">${result.requiredDepth.toFixed(2)} m</span></div>
-                  <div class="item"><span class="label">Available Depth</span><span class="value">${result.availableDepth.toFixed(2)} m</span></div>
+                  <div class="item"><span class="label">Available Depth</span><span class="value">${result.availableDepth.toFixed(2)} m <span style="font-size:0.6rem;color:#5a7e92;">(dari ${depthSource})</span></span></div>
                   <div class="item" style="grid-column: span 2;border-bottom:none;font-weight:700;color:${result.safetyMargin >= 0 ? '#27ae60' : '#e74c3c'}">
                     <span class="label">Safety Margin</span>
                     <span class="value">${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)} m</span>
@@ -1599,7 +1693,7 @@
             setStatus(`UKC: ${result.status} (Margin: ${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)}m)`,
                 result.status === 'ACCEPTABLE' ? '#27ae60' : '#e74c3c');
             setInfo(
-                `UKC Analysis: ${result.status} | Required: ${result.requiredDepth.toFixed(2)}m | Available: ${result.availableDepth.toFixed(2)}m`
+                `UKC Analysis: ${result.status} | Required: ${result.requiredDepth.toFixed(2)}m | Available: ${result.availableDepth.toFixed(2)}m (dari ${depthSource})`
                 );
         }
 
@@ -1608,6 +1702,7 @@
             document.getElementById('ukcResult').className = 'ukc-result';
             document.getElementById('ukcResult').innerHTML = '';
             lastUkcResult = null;
+            ukcInputs.waterDepth = 0;
             setStatus("UKC dibersihkan", "#447799");
             setInfo("UKC result cleared.");
         }
@@ -1637,6 +1732,7 @@
         document.getElementById('clearDestBtn')?.addEventListener('click', clearDest);
         document.getElementById('calculateUkcBtn').addEventListener('click', handleUkcCalculation);
         document.getElementById('clearUkcBtn').addEventListener('click', clearUkcResult);
+        document.getElementById('getDepthFromWaypointBtn').addEventListener('click', getDepthFromSelectedWaypoint);
 
         // Map click
         map.on('click', e => { if (!pickMode || isRouting) return; const { lat, lng } = e.latlng; if (islands.length &&
