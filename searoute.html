@@ -63,6 +63,8 @@
     .selected-port-info { background: #e8f4fc; border-radius: 24px; padding: 8px 12px; margin-top: 8px; font-size: 0.7rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .waypoint-marker-label { font-weight: bold; font-size: 10px; background: rgba(0, 80, 120, 0.92); color: white; padding: 3px 8px; border-radius: 20px; white-space: nowrap; border: 1px solid #7bc5e8; font-family: monospace; }
     .waypoint-marker-label.danger { background: rgba(200, 60, 40, 0.95); border-color: #ffaa00; }
+    .waypoint-marker-label.warning { background: rgba(200, 150, 40, 0.95); border-color: #ffaa00; }
+    .waypoint-marker-label.safe { background: rgba(0, 120, 80, 0.92); border-color: #5ce8a0; }
     button, .mode-tab, .route-mode-btn, .btn-icon, .search-result-item { touch-action: manipulation; }
 
     /* UKC Module Styles */
@@ -78,11 +80,19 @@
     .ukc-status { padding: 8px 12px; border-radius: 40px; text-align: center; font-weight: 700; font-size: 0.8rem; margin-top: 10px; }
     .ukc-status.acceptable { background: #27ae60; color: white; }
     .ukc-status.not-acceptable { background: #e74c3c; color: white; }
+    .ukc-status.warning { background: #f39c12; color: white; }
     .ukc-input-group { background: white; padding: 10px; border-radius: 16px; margin-bottom: 8px; }
     .ukc-input-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
     .ukc-input-row label { font-size: 0.65rem; color: #3e7e9e; font-weight: 600; min-width: 40px; }
     .ukc-input-row input, .ukc-input-row select { flex: 1; padding: 6px 10px; border: 1px solid #d4e2ec; border-radius: 24px; font-size: 0.7rem; min-width: 60px; }
     .ukc-input-row input:focus { border-color: #249bc7; outline: none; }
+    
+    /* Depth Warning Summary */
+    .depth-warning-summary { background: #fff5f5; border: 2px solid #e74c3c; border-radius: 16px; padding: 10px 14px; margin: 8px 0; display: none; }
+    .depth-warning-summary .title { font-weight: 700; color: #c0392b; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; }
+    .depth-warning-summary .list { margin-top: 6px; max-height: 80px; overflow-y: auto; font-size: 0.65rem; color: #555; }
+    .depth-warning-summary .list .warning-item { padding: 2px 4px; border-bottom: 1px solid #f0e0e0; display: flex; justify-content: space-between; }
+    .depth-warning-summary .list .warning-item .wp-num { font-weight: 600; color: #c0392b; }
   </style>
 </head>
 <body>
@@ -236,6 +246,12 @@
           <i class="fas fa-info-circle"></i> Detail perhitungan UKC
         </div>
       </div>
+    </div>
+
+    <!-- Depth Warning Summary -->
+    <div class="depth-warning-summary" id="depthWarningSummary">
+      <div class="title"><i class="fas fa-exclamation-triangle"></i> PERINGATAN KEDALAMAN</div>
+      <div class="list" id="depthWarningList"></div>
     </div>
 
     <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE</button>
@@ -412,6 +428,10 @@
   const ukcStatus = document.getElementById('ukcStatus');
   const ukcDetailInfo = document.getElementById('ukcDetailInfo');
   
+  // Depth warning elements
+  const depthWarningSummary = document.getElementById('depthWarningSummary');
+  const depthWarningList = document.getElementById('depthWarningList');
+  
   // ============================================
   // UKC Event Handler
   // ============================================
@@ -488,6 +508,82 @@
     setStatus(`UKC: ${result.status} | Safety Margin: ${result.safetyMargin.toFixed(2)}m`, 
               result.status === 'ACCEPTABLE' ? '#27ae60' : '#e74c3c');
   });
+  
+  // ============================================
+  // DEPTH WARNING FUNCTION - Check each waypoint against UKC
+  // ============================================
+  function checkWaypointDepthSafety(waypointCoords, shipParams) {
+    // Get UKC parameters from form or use defaults
+    const params = {
+      shipName: ukcShipName.value.trim() || 'MV Meratus',
+      length: parseFloat(ukcLength.value) || 180,
+      breadth: parseFloat(ukcBreadth.value) || 32,
+      staticDraft: parseFloat(ukcStaticDraft.value) || 12.5,
+      trimDraft: parseFloat(ukcTrim.value) || 0.3,
+      listingDraft: parseFloat(ukcListing.value) || 0.2,
+      squat: parseFloat(ukcSquat.value) || 0.5,
+      waveMotion: parseFloat(ukcWave.value) || 0.8,
+      waterDepth: 0, // Will be set per waypoint
+      environment: ukcEnvironment.value || 'Port Approach'
+    };
+    
+    const results = [];
+    let unsafeCount = 0;
+    let warningCount = 0;
+    
+    for (let i = 0; i < waypointCoords.length; i++) {
+      const coord = waypointCoords[i];
+      const depth = getDepthAt(coord[0], coord[1]);
+      params.waterDepth = depth;
+      
+      const ukcResult = calculateUKC(params);
+      
+      let status = 'safe';
+      let statusText = 'Aman';
+      let statusClass = 'safe';
+      
+      if (ukcResult.success) {
+        if (ukcResult.status === 'ACCEPTABLE') {
+          if (ukcResult.safetyMargin < 1.0) {
+            status = 'warning';
+            statusText = 'Perhatian';
+            statusClass = 'warning';
+            warningCount++;
+          } else {
+            status = 'safe';
+            statusText = 'Aman';
+            statusClass = 'safe';
+          }
+        } else {
+          status = 'danger';
+          statusText = 'Tidak Aman';
+          statusClass = 'danger';
+          unsafeCount++;
+        }
+      }
+      
+      results.push({
+        index: i,
+        lat: coord[0],
+        lng: coord[1],
+        depth: depth,
+        requiredDepth: ukcResult.success ? ukcResult.requiredDepth : 0,
+        ukc: ukcResult.success ? ukcResult.ukc : 0,
+        status: status,
+        statusText: statusText,
+        statusClass: statusClass,
+        safetyMargin: ukcResult.success ? ukcResult.safetyMargin : 0,
+        dynamicDraft: ukcResult.success ? ukcResult.dynamicDraft : 0
+      });
+    }
+    
+    return {
+      results: results,
+      unsafeCount: unsafeCount,
+      warningCount: warningCount,
+      totalWaypoints: waypointCoords.length
+    };
+  }
   
   // ============================================
   // Existing SeaRoute Pro Code (Preserved)
@@ -793,14 +889,47 @@
     });
   }
 
+  // ================================================================
+  // PERUBAHAN UTAMA: Fungsi renderDepthZones dengan warna gradasi
+  // dari MERAH (dangkal) ke BIRU TUA (dalam) per 10 meter
+  // ================================================================
   function renderDepthZones(){
     clearDepthPolygons();
-    depthZones.forEach(zone=>{
-      const poly=zone.latLngPolygon||zone.polygon;
-      if(poly&&poly.length>2){
-        const depth=zone.depth||0;
-        const color=depth<10?'#f87171':depth<20?'#fbbf24':depth<50?'#60a5fa':'#34d399';
-        const p=L.polygon(poly,{color:color,weight:1,fillColor:color,fillOpacity:0.15}).addTo(map);
+    
+    // Fungsi untuk mendapatkan warna berdasarkan kedalaman
+    // Kedalaman 0-7000 meter, gradasi dari merah ke biru tua
+    function getDepthColor(depth) {
+      // Batasi kedalaman maksimal 7000 meter
+      const maxDepth = 7000;
+      const clampedDepth = Math.min(depth, maxDepth);
+      
+      // Normalisasi kedalaman ke rentang 0-1
+      // 0 meter = 0 (merah), 7000 meter = 1 (biru tua)
+      const t = clampedDepth / maxDepth;
+      
+      // Warna mulai dari merah (255, 0, 0) ke biru tua (0, 0, 139)
+      // Interpolasi linear per komponen RGB
+      const r = Math.round(255 - (255 * t));
+      const g = Math.round(0 + (0 * t)); // tetap 0
+      const b = Math.round(0 + (139 * t));
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    depthZones.forEach(zone => {
+      const poly = zone.latLngPolygon || zone.polygon;
+      if (poly && poly.length > 2) {
+        const depth = zone.depth || 0;
+        const color = getDepthColor(depth);
+        
+        // Buat poligon dengan warna sesuai kedalaman
+        const p = L.polygon(poly, {
+          color: color,
+          weight: 1.5,
+          fillColor: color,
+          fillOpacity: 0.35
+        }).addTo(map);
+        
         depthPolygons.push(p);
       }
     });
@@ -938,23 +1067,67 @@
     routeLine=L.polyline(smoothed,{color:'#1f7e9e',weight:4,opacity:0.85}).addTo(map);
     map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
     
-    // Add waypoint markers with depth info
+    // ============================================
+    // DEPTH WARNING CHECK FOR EACH WAYPOINT
+    // ============================================
+    const waypointCoords = route.slice(1, -1); // Exclude start and end
+    const shipParams = {
+      length: parseFloat(ukcLength.value) || 180,
+      staticDraft: parseFloat(ukcStaticDraft.value) || 12.5,
+      trimDraft: parseFloat(ukcTrim.value) || 0.3,
+      listingDraft: parseFloat(ukcListing.value) || 0.2,
+      squat: parseFloat(ukcSquat.value) || 0.5,
+      waveMotion: parseFloat(ukcWave.value) || 0.8,
+      environment: ukcEnvironment.value || 'Port Approach'
+    };
+    
+    const depthCheck = checkWaypointDepthSafety(waypointCoords, shipParams);
+    
+    // Update waypoint markers with UKC-based status
     clearWaypointMarkers();
-    for(let i=1;i<route.length-1;i++){
-      const c=route[i];
-      const depth=getDepthAt(c[0],c[1]);
-      const safe=isDepthSafe(depth);
-      const marker=L.marker(c,{
-        icon:L.divIcon({
-          html:`<div class="waypoint-marker-label ${safe?'':'danger'}">${i} ${depth<999?depth.toFixed(1)+'m':''}</div>`,
-          className:'', iconSize:[60,20]
+    let warningHtml = '';
+    let hasWarnings = false;
+    
+    for(let i = 0; i < depthCheck.results.length; i++) {
+      const r = depthCheck.results[i];
+      const c = waypointCoords[i];
+      
+      let labelClass = 'safe';
+      let labelText = `${i+1}`;
+      
+      if (r.status === 'danger') {
+        labelClass = 'danger';
+        labelText = `${i+1} ⚠️${r.depth.toFixed(1)}m`;
+        hasWarnings = true;
+        warningHtml += `<div class="warning-item"><span class="wp-num">WP ${i+1}</span> <span>Kedalaman ${r.depth.toFixed(1)}m | UKC ${r.ukc.toFixed(2)}m ${r.statusText}</span></div>`;
+      } else if (r.status === 'warning') {
+        labelClass = 'warning';
+        labelText = `${i+1} ⚠️${r.depth.toFixed(1)}m`;
+        hasWarnings = true;
+        warningHtml += `<div class="warning-item"><span class="wp-num">WP ${i+1}</span> <span>Kedalaman ${r.depth.toFixed(1)}m | UKC ${r.ukc.toFixed(2)}m (margin ${r.safetyMargin.toFixed(2)}m)</span></div>`;
+      } else {
+        labelText = `${i+1} ${r.depth.toFixed(1)}m`;
+      }
+      
+      const marker = L.marker(c, {
+        icon: L.divIcon({
+          html: `<div class="waypoint-marker-label ${labelClass}">${labelText}</div>`,
+          className: '', iconSize: [70, 22]
         })
       }).addTo(map);
       waypointMarkersLayer.push(marker);
     }
     
+    // Show/hide depth warning summary
+    if (hasWarnings) {
+      depthWarningSummary.style.display = 'block';
+      depthWarningList.innerHTML = warningHtml || '<div style="color:#555;font-size:0.7rem;">Tidak ada peringatan kedalaman</div>';
+    } else {
+      depthWarningSummary.style.display = 'none';
+    }
+    
     setStatus(`Rute: ${route.length} waypoint, ${(routeLine.getLatLngs().length/2).toFixed(1)}km`, '#27ae60');
-    setInfo(`Rute siap. ${route.length-2} waypoint dengan kedalaman terdeteksi.`);
+    setInfo(`Rute siap. ${depthCheck.unsafeCount} waypoint tidak aman, ${depthCheck.warningCount} waypoint perhatian.`);
     isRouting=false;
   });
 
@@ -969,10 +1142,25 @@
       idx++;
       if(idx>=coords.length){ idx=coords.length-1; clearInterval(animationInterval); animationInterval=null; setStatus('Animasi selesai','#27ae60'); return; }
       shipMarker.setLatLng(coords[idx]);
-      // Check depth at current position
-      const depth=getDepthAt(coords[idx][0],coords[idx][1]);
-      if(!isDepthSafe(depth)){
+      // Check depth at current position using UKC
+      const depth = getDepthAt(coords[idx][0], coords[idx][1]);
+      const shipParams = {
+        length: parseFloat(ukcLength.value) || 180,
+        staticDraft: parseFloat(ukcStaticDraft.value) || 12.5,
+        trimDraft: parseFloat(ukcTrim.value) || 0.3,
+        listingDraft: parseFloat(ukcListing.value) || 0.2,
+        squat: parseFloat(ukcSquat.value) || 0.5,
+        waveMotion: parseFloat(ukcWave.value) || 0.8,
+        waterDepth: depth,
+        environment: ukcEnvironment.value || 'Port Approach'
+      };
+      const ukcResult = calculateUKC(shipParams);
+      
+      if (ukcResult.success && ukcResult.status === 'NOT ACCEPTABLE') {
         shipMarker.setIcon(L.divIcon({html:'<i class="fas fa-ship" style="color:#e74c3c;font-size:34px;transform:rotate(-45deg);text-shadow:0 0 20px rgba(231,76,60,0.6);"></i>',className:'',iconSize:[34,34]}));
+        setStatus(`⚠️ Peringatan: Kedalaman tidak aman di posisi saat ini!`, '#e74c3c');
+      } else if (ukcResult.success && ukcResult.safetyMargin < 1.0) {
+        shipMarker.setIcon(L.divIcon({html:'<i class="fas fa-ship" style="color:#f39c12;font-size:34px;transform:rotate(-45deg);text-shadow:0 0 20px rgba(243,156,18,0.5);"></i>',className:'',iconSize:[34,34]}));
       } else {
         shipMarker.setIcon(L.divIcon({html:'<i class="fas fa-ship" style="color:#e67e22;font-size:34px;transform:rotate(-45deg);text-shadow:0 2px 8px rgba(0,0,0,0.4);"></i>',className:'',iconSize:[34,34]}));
       }
@@ -988,6 +1176,7 @@
     if(startMarker){ map.removeLayer(startMarker); startMarker=null; }
     if(endMarker){ map.removeLayer(endMarker); endMarker=null; }
     currentRouteCoords=[];
+    depthWarningSummary.style.display = 'none';
     setStatus('Reset selesai','#2c7a4d');
     setInfo('Semua marker dan rute dihapus.');
   });
