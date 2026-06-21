@@ -421,6 +421,14 @@
             background: rgba(200, 60, 40, 0.95);
             border-color: #ffaa00;
         }
+        .waypoint-marker-label.depth-ok {
+            background: rgba(0, 120, 80, 0.92);
+            border-color: #2ecc71;
+        }
+        .waypoint-marker-label.depth-warning {
+            background: rgba(200, 150, 0, 0.92);
+            border-color: #f1c40f;
+        }
         button,
         .mode-tab,
         .route-mode-btn,
@@ -714,6 +722,15 @@
             background: #d4eaf3;
             transform: scale(0.98);
         }
+        .trajectory-selector .traj-actions .btn-depth {
+            background: #2ecc71;
+            color: white;
+            border: none;
+        }
+        .trajectory-selector .traj-actions .btn-depth:active {
+            background: #27ae60;
+            transform: scale(0.98);
+        }
 
         /* Distance Comparison Panel - Enhanced */
         .comparison-panel {
@@ -942,6 +959,7 @@
                     <button class="btn-load" id="loadTrajectoryBtn"><i class="fas fa-ship"></i> Muat Kapal</button>
                     <button class="btn-show" id="showTrajectoryBtn"><i class="fas fa-map"></i> Tampilkan Rute</button>
                     <button class="btn-show" id="compareRouteBtn" style="background:#8e44ad; color:white; border:none;"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
+                    <button class="btn-depth" id="checkTrajectoryDepthBtn"><i class="fas fa-water"></i> Cek Kedalaman</button>
                 </div>
             </div>
 
@@ -1100,6 +1118,7 @@
         let selectedTrajectoryVessel = null;
         let trajectoryRouteLine = null;
         let comparisonLines = [];
+        let trajectoryDepthMarkers = [];
 
         const WP_CONNECT_RADIUS = 3.0,
             WP_K_NEAR = 9,
@@ -1341,6 +1360,11 @@
         function clearComparisonLines() { comparisonLines.forEach(l => map.removeLayer(l));
             comparisonLines = []; }
 
+        function clearTrajectoryDepthMarkers() {
+            trajectoryDepthMarkers.forEach(m => map.removeLayer(m));
+            trajectoryDepthMarkers = [];
+        }
+
         function smoothCurve(coords, steps = 20) {
             if (!coords || coords.length < 2) return coords;
             if (coords.length === 2) return coords;
@@ -1387,6 +1411,138 @@
                         className: `waypoint-marker-label ${!safe ? 'danger' : ''}`
                     });
                 waypointMarkersLayer.push(marker);
+            }
+        }
+
+        // ============================================================
+        // TRAJECTORY DEPTH CHECK
+        // ============================================================
+        function checkTrajectoryDepth() {
+            const select = document.getElementById('vesselSelect');
+            const idx = parseInt(select.value);
+            if (isNaN(idx) || idx < 0 || idx >= trajectoryVessels.length) {
+                alert('⚠️ Pilih kapal trajectory terlebih dahulu!');
+                return;
+            }
+
+            const v = trajectoryVessels[idx];
+            if (!v || !v.route || v.route.length < 2) {
+                alert('⚠️ Kapal tidak memiliki rute yang valid!');
+                return;
+            }
+
+            // Hapus marker kedalaman sebelumnya
+            clearTrajectoryDepthMarkers();
+
+            const routeCoords = v.route.map(p => [p[0], p[1]]);
+            let depthSummary = [];
+            let unsafeCount = 0;
+            let totalDepth = 0;
+            let validDepthCount = 0;
+
+            for (let i = 0; i < routeCoords.length; i++) {
+                const p = routeCoords[i];
+                const depth = getDepthAt(p[0], p[1]);
+                const safe = isUkcSafe(depth);
+                
+                if (depth < DEPTH_NOT_FOUND) {
+                    totalDepth += depth;
+                    validDepthCount++;
+                }
+                
+                if (!safe && depth < DEPTH_NOT_FOUND) {
+                    unsafeCount++;
+                }
+
+                // Warna marker berdasarkan kedalaman
+                let color = '#2ecc71'; // Hijau - aman
+                let depthLabel = depth >= DEPTH_NOT_FOUND ? '>10000m' : `${depth.toFixed(1)}m`;
+                
+                if (depth >= DEPTH_NOT_FOUND) {
+                    color = '#3498db'; // Biru - sangat dalam
+                } else if (!safe) {
+                    color = '#e74c3c'; // Merah - tidak aman
+                } else if (depth < 20) {
+                    color = '#f39c12'; // Kuning - dangkal tapi aman
+                }
+
+                const marker = L.circleMarker([p[0], p[1]], {
+                    radius: 5,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 1.5,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+                
+                const safeIcon = safe ? '✅' : '⚠️';
+                const depthDisplay = depth >= DEPTH_NOT_FOUND ? 'Deep (>10000m)' : `${depth.toFixed(1)}m`;
+                marker.bindTooltip(
+                    `📍 #${i+1}: ${p[0].toFixed(4)}°, ${p[1].toFixed(4)}°<br>🌊 Kedalaman: ${depthDisplay} ${safeIcon}`,
+                    {
+                        permanent: false,
+                        direction: 'top',
+                        offset: [0, -8],
+                        className: `waypoint-marker-label ${!safe && depth < DEPTH_NOT_FOUND ? 'danger' : (depth >= DEPTH_NOT_FOUND ? 'depth-ok' : 'depth-warning')}`
+                    }
+                );
+                trajectoryDepthMarkers.push(marker);
+
+                depthSummary.push({
+                    index: i + 1,
+                    lat: p[0],
+                    lng: p[1],
+                    depth: depth,
+                    safe: safe
+                });
+            }
+
+            const avgDepth = validDepthCount > 0 ? totalDepth / validDepthCount : 0;
+
+            // Tampilkan ringkasan di response panel
+            const responseBody = document.getElementById('responseBody');
+            const responsePanel = document.getElementById('responsePanel');
+            
+            let summaryHtml = `
+                <div style="font-weight:700; color:#016e8c; margin-bottom:8px;">📊 ANALISIS KEDALAMAN TRAJECTORY</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:0.7rem;">
+                    <div><span style="color:#5a7e92;">Total Waypoint</span></div>
+                    <div style="font-weight:600; text-align:right;">${routeCoords.length}</div>
+                    <div><span style="color:#5a7e92;">Rata-rata Kedalaman</span></div>
+                    <div style="font-weight:600; text-align:right;">${avgDepth.toFixed(1)} m</div>
+                    <div><span style="color:#5a7e92;">Waypoint Tidak Aman</span></div>
+                    <div style="font-weight:600; text-align:right; color:${unsafeCount > 0 ? '#e74c3c' : '#27ae60'};">${unsafeCount} ${unsafeCount > 0 ? '⚠️' : '✅'}</div>
+                    <div><span style="color:#5a7e92;">Kedalaman Maks</span></div>
+                    <div style="font-weight:600; text-align:right;">${depthSummary.filter(d => d.depth < DEPTH_NOT_FOUND).length > 0 ? Math.max(...depthSummary.filter(d => d.depth < DEPTH_NOT_FOUND).map(d => d.depth)).toFixed(1) : '>10000'} m</div>
+                    <div><span style="color:#5a7e92;">Kedalaman Min</span></div>
+                    <div style="font-weight:600; text-align:right;">${depthSummary.filter(d => d.depth < DEPTH_NOT_FOUND).length > 0 ? Math.min(...depthSummary.filter(d => d.depth < DEPTH_NOT_FOUND).map(d => d.depth)).toFixed(1) : '>10000'} m</div>
+                </div>
+            `;
+
+            if (unsafeCount > 0) {
+                summaryHtml += `
+                    <div style="margin-top:8px; padding:6px 10px; background:#fdedec; border-radius:8px; border-left:3px solid #e74c3c; font-size:0.65rem;">
+                        <span style="color:#e74c3c; font-weight:600;">⚠️ ${unsafeCount} waypoint tidak aman berdasarkan UKC!</span>
+                        <br><span style="color:#5a7e92;">Arahkan kursor ke marker merah untuk detail.</span>
+                    </div>
+                `;
+            } else {
+                summaryHtml += `
+                    <div style="margin-top:8px; padding:6px 10px; background:#eafaf1; border-radius:8px; border-left:3px solid #27ae60; font-size:0.65rem;">
+                        <span style="color:#27ae60; font-weight:600;">✅ Semua waypoint aman berdasarkan UKC!</span>
+                    </div>
+                `;
+            }
+
+            responseBody.innerHTML = summaryHtml;
+            responsePanel.style.display = 'block';
+
+            setStatus(`📊 Trajectory: ${routeCoords.length} waypoint, ${unsafeCount} tidak aman`, unsafeCount > 0 ? '#e67e22' : '#27ae60');
+            setInfo(`Kedalaman trajectory dianalisis: ${unsafeCount} waypoint tidak aman`);
+
+            // Fit bounds ke trajectory route
+            if (trajectoryRouteLine) {
+                map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
             }
         }
 
@@ -1899,6 +2055,9 @@
                 trajectoryRouteLine = null;
             }
             
+            // Hapus marker kedalaman sebelumnya
+            clearTrajectoryDepthMarkers();
+            
             // Gambar rute trajectory dengan warna berbeda (biru muda)
             const routeCoords = v.route.map(p => [p[0], p[1]]);
             trajectoryRouteLine = L.polyline(routeCoords, {
@@ -1951,6 +2110,7 @@
             clearDepthPolygons();
             clearWaypointMarkers();
             clearComparisonLines();
+            clearTrajectoryDepthMarkers();
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -2444,6 +2604,8 @@
             }
             // Hapus comparison lines
             clearComparisonLines();
+            // Hapus trajectory depth markers
+            clearTrajectoryDepthMarkers();
             if (startMarker) map.removeLayer(startMarker); 
             if (endMarker) map.removeLayer(endMarker); 
             if (shipMarker) map.removeLayer(shipMarker);
@@ -2682,6 +2844,7 @@
 
         document.getElementById('loadTrajectoryBtn').addEventListener('click', loadTrajectoryVessel);
         document.getElementById('showTrajectoryBtn').addEventListener('click', showTrajectoryRoute);
+        document.getElementById('checkTrajectoryDepthBtn').addEventListener('click', checkTrajectoryDepth);
         
         // Comparison button
         document.getElementById('compareRouteBtn').addEventListener('click', function() {
