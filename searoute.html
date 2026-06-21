@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        /* ... (styles sama seperti sebelumnya) ... */
         * {
             margin: 0;
             padding: 0;
@@ -428,7 +429,7 @@
             touch-action: manipulation;
         }
 
-        /* ========== UKC PANEL RAPI ========== */
+        /* UKC Panel */
         .ukc-panel {
             background: #f7fbfe;
             border-radius: 16px;
@@ -560,7 +561,7 @@
             padding-top: 6px;
         }
 
-        /* ===== NEW RESPONSE PANEL ===== */
+        /* Response Panel */
         .response-panel {
             background: #f0f8fe;
             border-radius: 16px;
@@ -608,19 +609,19 @@
             color: #2471a3;
         }
 
-        /* ===== TRAJECTORY SELECTOR ===== */
+        /* Trajectory Vessel Selector */
         .trajectory-selector {
-            background: #f7fbfe;
+            background: #f0f8fe;
             border-radius: 16px;
-            padding: 12px 14px;
-            margin: 8px 0 12px;
+            padding: 12px;
+            margin: 10px 0;
             border: 1px solid #d4e2ec;
         }
         .trajectory-selector .traj-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .trajectory-selector .traj-header i {
             color: #016e8c;
@@ -632,46 +633,86 @@
             color: #016e8c;
         }
         .trajectory-selector .traj-header .traj-badge {
-            background: #27ae60;
+            background: #8e44ad;
             color: white;
             padding: 2px 10px;
             border-radius: 40px;
-            font-size: 0.5rem;
+            font-size: 0.55rem;
             font-weight: 600;
             margin-left: auto;
         }
         .trajectory-selector select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 10px 14px;
             border: 1px solid #d4e2ec;
             border-radius: 48px;
             font-size: 0.75rem;
             background: white;
             color: #144f68;
-            font-family: 'Inter', sans-serif;
             cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23447e9e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
         }
         .trajectory-selector select:focus {
             outline: none;
             border-color: #249bc7;
+            box-shadow: 0 0 0 2px rgba(36, 155, 199, 0.1);
         }
-        .trajectory-info {
-            font-size: 0.65rem;
-            color: #5a7e92;
-            margin-top: 6px;
-            padding: 6px 10px;
+        .trajectory-selector .traj-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+            margin-top: 8px;
+            padding: 8px 10px;
             background: white;
             border-radius: 12px;
-            border: 1px solid #e2edf5;
-            display: none;
+            font-size: 0.65rem;
         }
-        .trajectory-info .highlight {
-            color: #016e8c;
-            font-weight: 600;
+        .trajectory-selector .traj-info .label {
+            color: #5a7e92;
         }
-        .trajectory-info .traj-points {
-            color: #27ae60;
+        .trajectory-selector .traj-info .value {
             font-weight: 600;
+            color: #144f68;
+            text-align: right;
+        }
+        .trajectory-selector .traj-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .trajectory-selector .traj-actions button {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .trajectory-selector .traj-actions .btn-load {
+            background: #1f7e9e;
+            color: white;
+        }
+        .trajectory-selector .traj-actions .btn-load:active {
+            background: #166d8a;
+            transform: scale(0.98);
+        }
+        .trajectory-selector .traj-actions .btn-show {
+            background: #e8f4fc;
+            color: #1f7e9e;
+            border: 1px solid #cde0ec;
+        }
+        .trajectory-selector .traj-actions .btn-show:active {
+            background: #d4eaf3;
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -694,22 +735,6 @@
             <div class="route-mode-selector">
                 <button class="route-mode-btn" id="routeModeManualBtn"><i class="fas fa-hand-pointer"></i> MANUAL</button>
                 <button class="route-mode-btn active" id="routeModeAutoBtn"><i class="fas fa-magic"></i> AUTO</button>
-            </div>
-
-            <!-- ===== TRAJECTORY SELECTOR ===== -->
-            <div class="trajectory-selector" id="trajectorySelector">
-                <div class="traj-header">
-                    <i class="fas fa-route"></i>
-                    <span>SHIP TRAJECTORY</span>
-                    <span class="traj-badge" id="trajCountBadge">0</span>
-                </div>
-                <select id="trajectorySelect">
-                    <option value="">-- Pilih Trajectory Kapal --</option>
-                </select>
-                <div class="trajectory-info" id="trajectoryInfo">
-                    <div><span class="highlight" id="trajVesselName">-</span> · MMSI: <span id="trajMmsi">-</span></div>
-                    <div>Rute: <span id="trajRegion">-</span> · <span class="traj-points" id="trajPoints">0</span> titik</div>
-                </div>
             </div>
 
             <!-- AUTO panel -->
@@ -753,6 +778,38 @@
                 </div>
             </div>
 
+            <!-- TRAJECTORY VESSEL SELECTOR -->
+            <div class="trajectory-selector" id="trajectorySelector">
+                <div class="traj-header">
+                    <i class="fas fa-route"></i>
+                    <span>SHIP TRAJECTORY</span>
+                    <span class="traj-badge">JSON</span>
+                </div>
+                <select id="vesselSelect">
+                    <option value="">-- Pilih Kapal --</option>
+                </select>
+                <div class="traj-info" id="vesselInfo">
+                    <div><span class="label">MMSI</span></div>
+                    <div><span class="value" id="infoMmsi">-</span></div>
+                    <div><span class="label">Nama</span></div>
+                    <div><span class="value" id="infoName">-</span></div>
+                    <div><span class="label">Tipe</span></div>
+                    <div><span class="value" id="infoType">-</span></div>
+                    <div><span class="label">Panjang</span></div>
+                    <div><span class="value" id="infoLength">-</span></div>
+                    <div><span class="label">Draft</span></div>
+                    <div><span class="value" id="infoDraft">-</span></div>
+                    <div><span class="label">Muatan</span></div>
+                    <div><span class="value" id="infoCargo">-</span></div>
+                    <div><span class="label">Waypoints</span></div>
+                    <div><span class="value" id="infoWaypoints">-</span></div>
+                </div>
+                <div class="traj-actions">
+                    <button class="btn-load" id="loadTrajectoryBtn"><i class="fas fa-ship"></i> Muat Kapal</button>
+                    <button class="btn-show" id="showTrajectoryBtn"><i class="fas fa-map"></i> Tampilkan Rute</button>
+                </div>
+            </div>
+
             <!-- Kapal -->
             <div class="input-group">
                 <div class="input-label"><i class="fas fa-satellite-dish"></i> KAPAL (START OTOMATIS)</div>
@@ -766,14 +823,13 @@
                 <button id="fetchShipByMmsiBtn" style="width:100%; background:#d4eaf3; border:none; padding:10px; border-radius:40px;"><i class="fas fa-search"></i> Pilih Kapal & Set START</button>
             </div>
 
-            <!-- ===== UKC PANEL RAPI ===== -->
+            <!-- UKC Panel -->
             <div class="ukc-panel" id="ukcPanel">
                 <div class="ukc-header">
                     <i class="fas fa-water"></i>
                     <span>UNDER KEEL CLEARANCE</span>
                     <span class="ukc-badge">UKC</span>
                 </div>
-
                 <div class="flex-row">
                     <input type="text" id="ukcShipName" placeholder="Nama Kapal" value="" style="flex:2;">
                 </div>
@@ -794,18 +850,15 @@
                         <option value="Coastal Water">Coastal Water</option>
                     </select>
                 </div>
-
                 <div class="flex-row">
                     <button id="getDepthFromWaypointBtn" style="flex:1; background:#d4eaf3; border:1px solid #cde0ec; padding:8px 12px; border-radius:40px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; color:#196f8f;">
                         <i class="fas fa-download"></i> Ambil Kedalaman dari Waypoint
                     </button>
                 </div>
-
                 <div class="ukc-action-row">
                     <button id="calculateUkcBtn"><i class="fas fa-calculator"></i> Hitung UKC</button>
                     <button id="clearUkcBtn" class="secondary"><i class="fas fa-undo-alt"></i> Reset</button>
                 </div>
-
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
 
@@ -839,7 +892,7 @@
             <div class="status-mini"><i class="fas fa-info-circle"></i> <span id="status">Memulai sistem...</span></div>
             <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
 
-            <!-- ===== RESPONSE PANEL ===== -->
+            <!-- Response Panel -->
             <div class="response-panel" id="responsePanel">
                 <div class="response-header"><i class="fas fa-robot"></i> AI Response</div>
                 <div class="response-body" id="responseBody">Siap membantu navigasi Anda.</div>
@@ -884,17 +937,16 @@
         let selectedDestPort = null;
         let waypointMarkersLayer = [];
 
-        // ===== TRAJECTORY VARIABLES =====
-        let trajectoryData = [];
-        let selectedTrajectory = null;
-        let trajectoryLine = null;
-        let trajectoryMarkers = [];
-
         // Depth zones data
         let depthZones = [];
         let depthPolygons = [];
         let currentShipLength = 0;
         let currentShipDraft = 0;
+
+        // ===== TRAJECTORY DATA =====
+        let trajectoryVessels = [];
+        let selectedTrajectoryVessel = null;
+        let trajectoryRouteLine = null;
 
         const WP_CONNECT_RADIUS = 3.0,
             WP_K_NEAR = 9,
@@ -1002,6 +1054,7 @@
             }
             
             ukcInputs.waterDepth = depth;
+            document.getElementById('ukcWaterDepthDisplay')?.remove();
             
             const resultDiv = document.getElementById('ukcResult');
             resultDiv.style.display = 'block';
@@ -1128,12 +1181,6 @@
         function clearWaypointMarkers() { waypointMarkersLayer.forEach(m => map.removeLayer(m));
             waypointMarkersLayer = []; }
 
-        function clearTrajectoryMarkers() { trajectoryMarkers.forEach(m => map.removeLayer(m));
-            trajectoryMarkers = []; }
-        
-        function clearTrajectoryLine() { if (trajectoryLine) { map.removeLayer(trajectoryLine);
-                trajectoryLine = null; } }
-
         function smoothCurve(coords, steps = 20) {
             if (!coords || coords.length < 2) return coords;
             if (coords.length === 2) return coords;
@@ -1184,177 +1231,7 @@
         }
 
         // ============================================================
-        // TRAJECTORY FUNCTIONS
-        // ============================================================
-        async function loadTrajectoryData() {
-            try {
-                const res = await fetch('Ship_Trajectory.json');
-                const data = await res.json();
-                
-                // Support both single vessel and array of vessels
-                if (Array.isArray(data)) {
-                    trajectoryData = data;
-                } else if (data.vessel_name) {
-                    trajectoryData = [data];
-                } else {
-                    trajectoryData = [];
-                }
-                
-                populateTrajectorySelect();
-                document.getElementById('trajCountBadge').textContent = trajectoryData.length;
-                setStatus(`🚢 ${trajectoryData.length} trajectory kapal dimuat`, "#2c7a4d");
-            } catch (e) {
-                console.log('Ship_Trajectory.json tidak ditemukan atau error:', e);
-                setStatus("⚠️ Ship_Trajectory.json tidak ada", "#f39c12");
-                trajectoryData = [];
-            }
-        }
-
-        function populateTrajectorySelect() {
-            const select = document.getElementById('trajectorySelect');
-            select.innerHTML = '<option value="">-- Pilih Trajectory Kapal --</option>';
-            
-            for (let i = 0; i < trajectoryData.length; i++) {
-                const traj = trajectoryData[i];
-                const label = `${traj.vessel_name || 'Kapal'} (MMSI: ${traj.mmsi || '-'})`;
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = label;
-                select.appendChild(option);
-            }
-        }
-
-        function loadTrajectory(index) {
-            // Clear previous trajectory
-            clearTrajectoryLine();
-            clearTrajectoryMarkers();
-            
-            if (index === '' || index === null || index === undefined) {
-                selectedTrajectory = null;
-                document.getElementById('trajectoryInfo').style.display = 'none';
-                return;
-            }
-            
-            const traj = trajectoryData[parseInt(index)];
-            if (!traj || !traj.trajectory || traj.trajectory.length === 0) {
-                alert('Trajectory tidak valid atau kosong!');
-                return;
-            }
-            
-            selectedTrajectory = traj;
-            
-            // Update info
-            document.getElementById('trajVesselName').textContent = traj.vessel_name || 'Unknown';
-            document.getElementById('trajMmsi').textContent = traj.mmsi || '-';
-            document.getElementById('trajRegion').textContent = traj.route_region || '-';
-            document.getElementById('trajPoints').textContent = traj.trajectory.length;
-            document.getElementById('trajectoryInfo').style.display = 'block';
-            
-            // Draw trajectory on map
-            const coords = traj.trajectory.map(p => [p.latitude, p.longitude]);
-            
-            // Draw line
-            trajectoryLine = L.polyline(coords, {
-                color: '#FF6B35',
-                weight: 3,
-                opacity: 0.8,
-                dashArray: '8, 6'
-            }).addTo(map);
-            
-            // Add markers for each point with timestamp
-            for (let i = 0; i < coords.length; i++) {
-                const p = coords[i];
-                const data = traj.trajectory[i];
-                const marker = L.circleMarker(p, {
-                    radius: 3,
-                    fillColor: '#FF6B35',
-                    color: '#ffffff',
-                    weight: 1,
-                    fillOpacity: 0.8
-                }).addTo(map);
-                
-                const depth = getDepthAt(p[0], p[1]);
-                const depthText = depth >= 999 ? 'Deep' : `${depth.toFixed(1)}m`;
-                
-                const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A';
-                marker.bindTooltip(
-                    `🟠 ${traj.vessel_name}<br>📍 ${p[0].toFixed(4)}°, ${p[1].toFixed(4)}°<br>🕐 ${timestamp}<br>🌊 ${depthText}`,
-                    { permanent: false, direction: 'top', offset: [0, -8] }
-                );
-                trajectoryMarkers.push(marker);
-            }
-            
-            // Set start position from first trajectory point
-            const firstPoint = coords[0];
-            start = [firstPoint[0], firstPoint[1]];
-            document.getElementById('startLat').value = firstPoint[0].toFixed(6);
-            document.getElementById('startLng').value = firstPoint[1].toFixed(6);
-            
-            if (startMarker) map.removeLayer(startMarker);
-            startMarker = L.marker([firstPoint[0], firstPoint[1]], {
-                icon: L.divIcon({
-                    html: `<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`,
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 28]
-                })
-            }).addTo(map).bindPopup(`START: ${traj.vessel_name}`).openPopup();
-            
-            // Update ship info
-            if (traj.mmsi) {
-                document.getElementById('shipMMSI').value = traj.mmsi;
-            }
-            
-            // Set UKC ship name
-            if (traj.vessel_name) {
-                document.getElementById('ukcShipName').value = traj.vessel_name;
-            }
-            
-            // Set length and draft if available
-            if (traj.length) {
-                document.getElementById('shipLength').value = traj.length;
-                document.getElementById('ukcLength').value = traj.length;
-                currentShipLength = traj.length;
-            }
-            if (traj.draft) {
-                document.getElementById('shipDraft').value = traj.draft;
-                document.getElementById('ukcStaticDraft').value = traj.draft;
-                currentShipDraft = traj.draft;
-            }
-            
-            // Fit map to trajectory
-            const bounds = L.latLngBounds(coords);
-            map.fitBounds(bounds, { padding: [50, 50] });
-            
-            setStatus(`🛳️ Trajectory: ${traj.vessel_name} (${traj.trajectory.length} titik)`, "#2c7a4d");
-            setInfo(`Trajectory ${traj.vessel_name} dimuat · ${traj.trajectory.length} titik · ${traj.route_region || ''}`);
-            
-            // Clear previous route
-            if (routeLine) {
-                if (typeof routeLine.remove === 'function') {
-                    routeLine.remove();
-                } else if (routeLine._layers) {
-                    for (const line of routeLine._layers) {
-                        map.removeLayer(line);
-                    }
-                } else {
-                    map.removeLayer(line);
-                }
-                routeLine = null;
-                currentRouteCoords = [];
-                stopAnimation();
-                if (shipMarker) map.removeLayer(shipMarker);
-                clearWaypointMarkers();
-                const oldLegend = document.querySelector('.route-legend');
-                if (oldLegend) oldLegend.remove();
-            }
-        }
-
-        // ============================================================
-        // END TRAJECTORY FUNCTIONS
-        // ============================================================
-
-        // ============================================================
-        // FUNGSI DRAW ROUTE DENGAN 3 WARNA
+        // DRAW ROUTE DENGAN 3 WARNA
         // ============================================================
         function drawRouteWithThreeColors(coords) {
             if (routeLine) {
@@ -1496,6 +1373,210 @@
             drawRouteWithThreeColors(coords);
         }
 
+        // ============================================================
+        // TRAJECTORY FUNCTIONS
+        // ============================================================
+        async function loadTrajectoryData() {
+            try {
+                const res = await fetch('Ship_Trajectory.json');
+                const data = await res.json();
+                trajectoryVessels = data.vessels || [];
+                
+                const select = document.getElementById('vesselSelect');
+                select.innerHTML = '<option value="">-- Pilih Kapal --</option>';
+                
+                trajectoryVessels.forEach((v, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.textContent = `${v.name || v.mmsi} (${v.mmsi})`;
+                    select.appendChild(opt);
+                });
+                
+                setStatus(`📊 ${trajectoryVessels.length} kapal trajectory dimuat`, "#8e44ad");
+                setInfo(`Ship_Trajectory.json dimuat: ${trajectoryVessels.length} kapal`);
+            } catch (e) {
+                console.error('Trajectory load error:', e);
+                setStatus("⚠️ Ship_Trajectory.json tidak ditemukan", "#e67e22");
+                setInfo("File Ship_Trajectory.json belum tersedia");
+            }
+        }
+
+        function updateVesselInfo(index) {
+            const v = trajectoryVessels[index];
+            if (!v) {
+                document.getElementById('infoMmsi').textContent = '-';
+                document.getElementById('infoName').textContent = '-';
+                document.getElementById('infoType').textContent = '-';
+                document.getElementById('infoLength').textContent = '-';
+                document.getElementById('infoDraft').textContent = '-';
+                document.getElementById('infoCargo').textContent = '-';
+                document.getElementById('infoWaypoints').textContent = '-';
+                selectedTrajectoryVessel = null;
+                return;
+            }
+            
+            document.getElementById('infoMmsi').textContent = v.mmsi || '-';
+            document.getElementById('infoName').textContent = v.name || '-';
+            document.getElementById('infoType').textContent = v.type || '-';
+            document.getElementById('infoLength').textContent = v.length ? `${v.length}m` : '-';
+            document.getElementById('infoDraft').textContent = v.draft ? `${v.draft}m` : '-';
+            document.getElementById('infoCargo').textContent = v.cargo || '-';
+            document.getElementById('infoWaypoints').textContent = (v.route && v.route.length) ? `${v.route.length} titik` : '-';
+            
+            selectedTrajectoryVessel = v;
+        }
+
+        function loadTrajectoryVessel() {
+            const select = document.getElementById('vesselSelect');
+            const idx = parseInt(select.value);
+            if (isNaN(idx) || idx < 0 || idx >= trajectoryVessels.length) {
+                alert('Pilih kapal terlebih dahulu!');
+                return;
+            }
+            
+            const v = trajectoryVessels[idx];
+            if (!v || !v.route || v.route.length < 2) {
+                alert('Kapal tidak memiliki rute yang valid!');
+                return;
+            }
+
+            // Set MMSI
+            document.getElementById('shipMMSI').value = v.mmsi || '';
+            
+            // Set Length & Draft
+            if (v.length) {
+                document.getElementById('shipLength').value = v.length;
+                currentShipLength = v.length;
+            }
+            if (v.draft) {
+                document.getElementById('shipDraft').value = v.draft;
+                currentShipDraft = v.draft;
+            }
+            
+            // Set START dari titik pertama rute
+            const firstPoint = v.route[0];
+            if (firstPoint && firstPoint.length === 2) {
+                start = [firstPoint[0], firstPoint[1]];
+                document.getElementById('startLat').value = firstPoint[0].toFixed(6);
+                document.getElementById('startLng').value = firstPoint[1].toFixed(6);
+                
+                if (startMarker) map.removeLayer(startMarker);
+                startMarker = L.marker([firstPoint[0], firstPoint[1]], { 
+                    icon: L.divIcon({ 
+                        html: `<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`, 
+                        iconSize: [28, 28], 
+                        iconAnchor: [14, 28] 
+                    }) 
+                }).addTo(map).bindPopup(`START: ${v.name || v.mmsi}`).openPopup();
+                
+                map.setView([firstPoint[0], firstPoint[1]], 12);
+            }
+            
+            // Set END dari titik terakhir rute
+            const lastPoint = v.route[v.route.length - 1];
+            if (lastPoint && lastPoint.length === 2) {
+                end = [lastPoint[0], lastPoint[1]];
+                if (endMarker) map.removeLayer(endMarker);
+                endMarker = L.marker([lastPoint[0], lastPoint[1]], { 
+                    icon: L.divIcon({ 
+                        html: `<i class="fas fa-flag-checkered" style="font-size:28px; color:#d97706;"></i>`, 
+                        iconSize: [28, 28], 
+                        iconAnchor: [14, 28] 
+                    }) 
+                }).addTo(map).bindPopup(`TUJUAN: ${v.name || v.mmsi}`).openPopup();
+            }
+            
+            // Isi UKC panel dengan data kapal
+            if (v.name) document.getElementById('ukcShipName').value = v.name;
+            if (v.length) document.getElementById('ukcLength').value = v.length;
+            if (v.draft) document.getElementById('ukcStaticDraft').value = v.draft;
+            if (v.width) document.getElementById('ukcBreadth').value = v.width;
+            
+            // Simpan telemetry dummy
+            activeShipTelemetry = {
+                mmsi: v.mmsi,
+                lat: firstPoint[0],
+                lon: firstPoint[1],
+                length: v.length || 0,
+                draft: v.draft || 0,
+                sog: 0,
+                cog: 0,
+                hdg: 0,
+                rot: 0,
+                utc: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                class: 'A'
+            };
+            updateTelemetryUI(activeShipTelemetry);
+            document.getElementById('liveTelemetryPanel').style.display = 'block';
+            
+            setStatus(`✅ Kapal ${v.name || v.mmsi} dimuat dari trajectory`, "#8e44ad");
+            setInfo(`Trajectory: ${v.route.length} waypoints, ${v.type || 'Unknown type'}`);
+            
+            // Tampilkan rute trajectory di peta
+            showTrajectoryRoute();
+        }
+
+        function showTrajectoryRoute() {
+            const select = document.getElementById('vesselSelect');
+            const idx = parseInt(select.value);
+            if (isNaN(idx) || idx < 0 || idx >= trajectoryVessels.length) {
+                alert('Pilih kapal terlebih dahulu!');
+                return;
+            }
+            
+            const v = trajectoryVessels[idx];
+            if (!v || !v.route || v.route.length < 2) {
+                alert('Kapal tidak memiliki rute yang valid!');
+                return;
+            }
+            
+            // Hapus trajectory route sebelumnya
+            if (trajectoryRouteLine) {
+                map.removeLayer(trajectoryRouteLine);
+                trajectoryRouteLine = null;
+            }
+            
+            // Gambar rute trajectory dengan warna berbeda (biru muda)
+            const routeCoords = v.route.map(p => [p[0], p[1]]);
+            trajectoryRouteLine = L.polyline(routeCoords, {
+                color: '#3498db',
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '8, 6',
+                smoothFactor: 1
+            }).addTo(map);
+            
+            // Tambahkan marker untuk setiap waypoint trajectory (kecil)
+            for (let i = 0; i < v.route.length; i++) {
+                const p = v.route[i];
+                if (i % 10 === 0 || i === 0 || i === v.route.length - 1) {
+                    const marker = L.circleMarker([p[0], p[1]], {
+                        radius: 3,
+                        fillColor: '#3498db',
+                        color: '#ffffff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+                    marker.bindTooltip(`📍 ${p[0].toFixed(4)}°, ${p[1].toFixed(4)}°`, {
+                        permanent: false,
+                        direction: 'top',
+                        offset: [0, -5],
+                        className: 'waypoint-marker-label'
+                    });
+                }
+            }
+            
+            // Fit bounds ke route
+            map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
+            
+            setInfo(`Trajectory: ${v.name || v.mmsi} (${v.route.length} waypoints) ditampilkan dengan garis biru putus-putus`);
+        }
+
+        // ============================================================
+        // END TRAJECTORY FUNCTIONS
+        // ============================================================
+
         async function loadMode(modeName) {
             currentMode = modeName;
             setStatus(`Memuat ${modeName}...`, "#f39c12");
@@ -1506,9 +1587,6 @@
             clearIslandPolygons();
             clearDepthPolygons();
             clearWaypointMarkers();
-            clearTrajectoryLine();
-            clearTrajectoryMarkers();
-            
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -1610,8 +1688,8 @@
                         setStatus(`⚓ ${ports.length} pelabuhan`, "#1f7e9e");
                         setupPortSearch(); } } catch (e) { console.log("pelabuhan.json opsional"); }
                 
-                // Load trajectory data
-                loadTrajectoryData();
+                // Load Trajectory data
+                await loadTrajectoryData();
             } else { islands = [];
                 setStatus(`🔹 BIGRU: tanpa pulau`, "#2f7f5f");
                 setInfo("Mode BIGRU: tanpa obstacle pulau"); }
@@ -1733,7 +1811,7 @@
         // ============================================================
 
         async function runRoute() {
-            if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih trajectory terlebih dahulu."); return; }
+            if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih dari Trajectory."); return; }
             if (!end) { alert("⚠️ Belum ada pelabuhan tujuan! Pilih tujuan."); return; }
             if (isRouting) return;
             if (!wpReady || waypoints.length === 0) { alert("Data waypoint belum siap."); return; }
@@ -1990,6 +2068,11 @@
                 }
                 routeLine = null;
             }
+            // Hapus trajectory route
+            if (trajectoryRouteLine) {
+                map.removeLayer(trajectoryRouteLine);
+                trajectoryRouteLine = null;
+            }
             if (startMarker) map.removeLayer(startMarker); 
             if (endMarker) map.removeLayer(endMarker); 
             if (shipMarker) map.removeLayer(shipMarker);
@@ -2007,14 +2090,19 @@
             document.getElementById('shipLength').value = '';
             document.getElementById('shipDraft').value = '';
             document.getElementById('selectedDestDisplay').style.display = 'none';
+            document.getElementById('vesselSelect').value = '';
+            selectedTrajectoryVessel = null;
+            document.getElementById('infoMmsi').textContent = '-';
+            document.getElementById('infoName').textContent = '-';
+            document.getElementById('infoType').textContent = '-';
+            document.getElementById('infoLength').textContent = '-';
+            document.getElementById('infoDraft').textContent = '-';
+            document.getElementById('infoCargo').textContent = '-';
+            document.getElementById('infoWaypoints').textContent = '-';
             setStatus("Reset selesai.", "#447799");
             setInfo("Mode aktif.");
             document.getElementById('liveTelemetryPanel').style.display = 'none';
             clearWaypointMarkers();
-            clearTrajectoryLine();
-            clearTrajectoryMarkers();
-            document.getElementById('trajectorySelect').value = '';
-            document.getElementById('trajectoryInfo').style.display = 'none';
             document.getElementById('responsePanel').style.display = 'none';
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
@@ -2053,7 +2141,7 @@
                 document.getElementById('manualModePanel').style.display = 'none';
                 document.getElementById('routeModeAutoBtn').classList.add('active');
                 document.getElementById('routeModeManualBtn').classList.remove('active');
-                setInfo("Mode AUTO: pilih kapal (MMSI) atau trajectory & pelabuhan tujuan."); } else { document.getElementById(
+                setInfo("Mode AUTO: pilih kapal (MMSI) & pelabuhan tujuan."); } else { document.getElementById(
                     'autoModePanel').style.display = 'none';
                 document.getElementById('manualModePanel').style.display = 'block';
                 document.getElementById('routeModeManualBtn').classList.add('active');
@@ -2181,7 +2269,9 @@
         // END UKC HANDLER
         // ============================================================
 
-        // Event listeners
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
         document.getElementById('modeBigruBtn').addEventListener('click', () => { loadMode("BIGRU");
             document.getElementById('modeBigruBtn').classList.add('active');
             document.getElementById('modeBiltsmBtn').classList.remove('active'); });
@@ -2205,18 +2295,18 @@
         document.getElementById('clearUkcBtn').addEventListener('click', clearUkcResult);
         document.getElementById('getDepthFromWaypointBtn').addEventListener('click', getDepthFromSelectedWaypoint);
 
-        // ===== TRAJECTORY SELECTOR EVENT =====
-        document.getElementById('trajectorySelect').addEventListener('change', function() {
-            const index = this.value;
-            if (index === '') {
-                clearTrajectoryLine();
-                clearTrajectoryMarkers();
-                document.getElementById('trajectoryInfo').style.display = 'none';
-                selectedTrajectory = null;
-                return;
+        // Trajectory event listeners
+        document.getElementById('vesselSelect').addEventListener('change', function() {
+            const idx = parseInt(this.value);
+            if (!isNaN(idx) && idx >= 0 && idx < trajectoryVessels.length) {
+                updateVesselInfo(idx);
+            } else {
+                updateVesselInfo(-1);
             }
-            loadTrajectory(index);
         });
+
+        document.getElementById('loadTrajectoryBtn').addEventListener('click', loadTrajectoryVessel);
+        document.getElementById('showTrajectoryBtn').addEventListener('click', showTrajectoryRoute);
 
         // Map click
         map.on('click', e => { if (!pickMode || isRouting) return; const { lat, lng } = e.latlng; if (islands.length &&
@@ -2266,12 +2356,14 @@
         document.getElementById('navHeader').addEventListener('click', (e) => { if (e.target !== toggleNavBtn && !toggleNavBtn
                 .contains(e.target)) toggleNav(); });
 
+        // ============================================================
+        // INIT
+        // ============================================================
         loadMode("BILTSM");
         setRouteMode("AUTO");
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
-            "🌊 Pilih kapal via MMSI atau pilih trajectory, lalu pilih pelabuhan tujuan. Gunakan panel UKC untuk analisis keselamatan",
-            "#2f9e6b");
+            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan", "#2f9e6b");
     </script>
 </body>
 </html>
