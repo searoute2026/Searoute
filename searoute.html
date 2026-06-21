@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        /* ... (styles sama seperti sebelumnya) ... */
         * {
             margin: 0;
             padding: 0;
@@ -37,7 +36,7 @@
             left: 12px;
             right: 12px;
             width: auto;
-            max-width: 420px;
+            max-width: 480px;
             max-height: calc(100vh - 24px);
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(12px);
@@ -54,7 +53,7 @@
             .marine-nav {
                 left: 16px;
                 right: auto;
-                width: 420px;
+                width: 480px;
                 max-width: 85vw;
             }
         }
@@ -715,9 +714,9 @@
             transform: scale(0.98);
         }
 
-        /* Distance Comparison Panel */
+        /* COMPARISON PANEL */
         .comparison-panel {
-            background: #f7fbfe;
+            background: #f8f0fc;
             border-radius: 16px;
             padding: 14px;
             margin: 12px 0;
@@ -729,87 +728,137 @@
             align-items: center;
             gap: 8px;
             margin-bottom: 10px;
+            font-weight: 700;
+            color: #6c3483;
+            border-bottom: 1px solid #d7bde2;
+            padding-bottom: 6px;
         }
         .comparison-panel .comp-header i {
-            color: #8e44ad;
             font-size: 1.1rem;
-        }
-        .comparison-panel .comp-header span {
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: #6c3483;
         }
         .comparison-panel .comp-header .comp-badge {
             background: #8e44ad;
             color: white;
-            padding: 2px 10px;
+            padding: 2px 12px;
             border-radius: 40px;
             font-size: 0.55rem;
-            font-weight: 600;
             margin-left: auto;
         }
-        .comparison-item {
+        .comparison-panel .comp-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .comparison-panel .comp-stat-item {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.65rem;
+            border: 1px solid #e8daef;
+        }
+        .comparison-panel .comp-stat-item .stat-value {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #6c3483;
+        }
+        .comparison-panel .comp-stat-item .stat-label {
+            color: #5a7e92;
+        }
+        .comparison-panel .comp-table-wrap {
+            max-height: 150px;
+            overflow-y: auto;
             background: white;
             border-radius: 12px;
+            border: 1px solid #e8daef;
+        }
+        .comparison-panel .comp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.6rem;
+        }
+        .comparison-panel .comp-table th {
+            background: #6c3483;
+            color: white;
+            padding: 6px 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .comparison-panel .comp-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #f0e6f5;
+            text-align: center;
+            font-size: 0.6rem;
+        }
+        .comparison-panel .comp-table tr:nth-child(even) {
+            background: #faf5fc;
+        }
+        .comparison-panel .comp-table .diff-highlight {
+            font-weight: 700;
+        }
+        .comparison-panel .comp-table .diff-small {
+            color: #27ae60;
+        }
+        .comparison-panel .comp-table .diff-medium {
+            color: #e67e22;
+        }
+        .comparison-panel .comp-table .diff-large {
+            color: #e74c3c;
+        }
+        .comparison-panel .comp-table .no-data {
+            color: #999;
+            font-style: italic;
+        }
+        .comparison-panel .comp-summary {
+            margin-top: 8px;
             padding: 8px 12px;
-            margin-bottom: 6px;
-            border-left: 3px solid #8e44ad;
+            background: #faf5fc;
+            border-radius: 12px;
             font-size: 0.7rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 1px solid #e8daef;
         }
-        .comparison-item .wp-label {
-            font-weight: 600;
-            color: #2d6d89;
-        }
-        .comparison-item .wp-distance {
-            font-family: monospace;
-            font-weight: 600;
-            color: #8e44ad;
-        }
-        .comparison-item .wp-diff {
-            font-family: monospace;
+        .comparison-panel .comp-summary .avg-diff {
             font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 12px;
         }
-        .comparison-item .wp-diff.small {
-            background: #d5f5e3;
-            color: #27ae60;
-        }
-        .comparison-item .wp-diff.medium {
-            background: #fdebd0;
-            color: #e67e22;
-        }
-        .comparison-item .wp-diff.large {
-            background: #fadbd8;
-            color: #e74c3c;
-        }
-        .comparison-summary {
-            background: #eaf2f8;
-            border-radius: 12px;
-            padding: 10px 12px;
-            margin-top: 8px;
-            font-size: 0.7rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 12px;
-        }
-        .comparison-summary .item {
+        .comparison-panel .comp-actions {
             display: flex;
-            justify-content: space-between;
-            padding: 2px 0;
+            gap: 8px;
+            margin-top: 8px;
         }
-        .comparison-summary .item .label {
-            color: #5a7e92;
+        .comparison-panel .comp-actions button {
+            flex: 1;
+            padding: 6px 0;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .comparison-summary .item .value {
-            font-weight: 700;
-            color: #144f68;
+        .comparison-panel .comp-actions .btn-compare {
+            background: #8e44ad;
+            color: white;
         }
-        .comparison-summary .item .value.highlight {
-            color: #8e44ad;
+        .comparison-panel .comp-actions .btn-compare:active {
+            background: #6c3483;
+            transform: scale(0.98);
+        }
+        .comparison-panel .comp-actions .btn-clear-compare {
+            background: #f0e6f5;
+            color: #6c3483;
+            border: 1px solid #d7bde2;
+        }
+        .comparison-panel .comp-actions .btn-clear-compare:active {
+            background: #e8daef;
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -904,7 +953,6 @@
                 <div class="traj-actions">
                     <button class="btn-load" id="loadTrajectoryBtn"><i class="fas fa-ship"></i> Muat Kapal</button>
                     <button class="btn-show" id="showTrajectoryBtn"><i class="fas fa-map"></i> Tampilkan Rute</button>
-                    <button class="btn-show" id="compareRouteBtn" style="background:#8e44ad; color:white; border:none;"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
                 </div>
             </div>
 
@@ -960,16 +1008,6 @@
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
 
-            <!-- Comparison Panel -->
-            <div class="comparison-panel" id="comparisonPanel">
-                <div class="comp-header">
-                    <i class="fas fa-arrows-left-right"></i>
-                    <span>PERBANDINGAN JARAK WAYPOINT</span>
-                    <span class="comp-badge">VS TRAJECTORY</span>
-                </div>
-                <div id="comparisonContent"></div>
-            </div>
-
             <!-- Telemetry -->
             <div id="liveTelemetryPanel" style="display: none;" class="telemetry-card">
                 <div class="telemetry-title"><span><i class="fas fa-microchip"></i> AIS TELEMETRY</span><span class="status-badge" id="navStatusBadge">Underway</span></div>
@@ -989,6 +1027,52 @@
                 </div>
                 <div class="info-tip" style="margin-top:8px; font-size:0.6rem;">
                     <i class="fas fa-database"></i> Posisi kapal menjadi START
+                </div>
+            </div>
+
+            <!-- COMPARISON PANEL -->
+            <div class="comparison-panel" id="comparisonPanel">
+                <div class="comp-header">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>PERBANDINGAN RUTE</span>
+                    <span class="comp-badge">VS TRAJECTORY</span>
+                </div>
+                <div class="comp-stats" id="compStats">
+                    <div class="comp-stat-item">
+                        <div class="stat-value" id="compTotalDiff">-</div>
+                        <div class="stat-label">Total Selisih (km)</div>
+                    </div>
+                    <div class="comp-stat-item">
+                        <div class="stat-value" id="compAvgDiff">-</div>
+                        <div class="stat-label">Rata-rata (km)</div>
+                    </div>
+                    <div class="comp-stat-item">
+                        <div class="stat-value" id="compMaxDiff">-</div>
+                        <div class="stat-label">Max Selisih (km)</div>
+                    </div>
+                </div>
+                <div class="comp-table-wrap">
+                    <table class="comp-table" id="compTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Trajectory WP</th>
+                                <th>Generated WP</th>
+                                <th>Selisih (km)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compTableBody">
+                            <tr><td colspan="4" class="no-data">Belum ada data perbandingan</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="comp-summary" id="compSummary">
+                    <span><i class="fas fa-info-circle"></i> Selisih = jarak antara waypoint trajectory dengan waypoint generate terdekat</span>
+                    <span class="avg-diff" id="compAvgLabel">-</span>
+                </div>
+                <div class="comp-actions">
+                    <button class="btn-compare" id="compareRouteBtn"><i class="fas fa-arrows-left-right"></i> Bandingkan Rute</button>
+                    <button class="btn-clear-compare" id="clearCompareBtn"><i class="fas fa-times"></i> Bersihkan</button>
                 </div>
             </div>
 
@@ -1044,7 +1128,6 @@
             ports = [];
         let selectedDestPort = null;
         let waypointMarkersLayer = [];
-        let lastRoutePathIds = [];
 
         // Depth zones data
         let depthZones = [];
@@ -1056,6 +1139,11 @@
         let trajectoryVessels = [];
         let selectedTrajectoryVessel = null;
         let trajectoryRouteLine = null;
+        let currentGeneratedPathIds = [];
+        let currentGeneratedCoords = [];
+
+        // ===== COMPARISON DATA =====
+        let comparisonData = [];
         let comparisonLines = [];
 
         const WP_CONNECT_RADIUS = 3.0,
@@ -1111,7 +1199,7 @@
         }
 
         // ============================================================
-        // MODUL UKC
+        // MODUL UKC (sama seperti sebelumnya)
         // ============================================================
         let ukcInputs = {
             shipName: '',
@@ -1125,7 +1213,6 @@
             waterDepth: 0,
             environment: 'Port Approach'
         };
-
         let lastUkcResult = null;
 
         function getDepthFromData(lat, lng) {
@@ -1153,19 +1240,15 @@
                 alert('⚠️ Tidak ada posisi START! Cari kapal atau tentukan START terlebih dahulu.');
                 return;
             }
-            
             const lat = start[0];
             const lng = start[1];
             const depth = getDepthFromData(lat, lng);
-            
             if (depth === 999) {
                 alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi ini. Pastikan data kedalaman.json dan waypoint telah dimuat.');
                 return;
             }
-            
             ukcInputs.waterDepth = depth;
             document.getElementById('ukcWaterDepthDisplay')?.remove();
-            
             const resultDiv = document.getElementById('ukcResult');
             resultDiv.style.display = 'block';
             resultDiv.className = 'ukc-result';
@@ -1183,7 +1266,6 @@
                     <i class="fas fa-arrow-right"></i> Tekan "Hitung UKC" untuk analisis lengkap.
                 </div>
             `;
-            
             setStatus(`✅ Kedalaman ${depth.toFixed(1)}m diambil dari data`, "#27ae60");
             setInfo(`Kedalaman: ${depth.toFixed(1)}m (dari ${depthZones.length > 0 ? 'kedalaman.json' : 'waypoint'})`);
         }
@@ -1197,33 +1279,25 @@
                     return { error: `Nilai ${field} tidak boleh negatif` };
                 }
             }
-
             const { staticDraft, trimDraft, listingDraft, squat, waveMotion, waterDepth, environment } = inputs;
-
             const maxDraftFromTrimListing = Math.max(trimDraft, listingDraft);
             const dynamicDraft = maxDraftFromTrimListing + squat + waveMotion;
-
             let ukc = 0;
             if (environment === 'Port Approach') {
                 ukc = Math.max(1.0, 0.10 * staticDraft);
             } else {
                 ukc = 0.20 * dynamicDraft;
             }
-
             const requiredDepth = dynamicDraft + ukc;
-
             let status = 'NOT ACCEPTABLE';
             if (waterDepth >= requiredDepth) {
                 status = 'ACCEPTABLE';
             }
-
             const safetyMargin = waterDepth - requiredDepth;
-
             let warning = '';
             if (dynamicDraft > waterDepth) {
                 warning = '⚠️ Dynamic Draft melebihi kedalaman air!';
             }
-
             return {
                 shipName: inputs.shipName || 'Unknown',
                 dynamicDraft: Math.round(dynamicDraft * 100) / 100,
@@ -1290,9 +1364,6 @@
 
         function clearWaypointMarkers() { waypointMarkersLayer.forEach(m => map.removeLayer(m));
             waypointMarkersLayer = []; }
-
-        function clearComparisonLines() { comparisonLines.forEach(l => map.removeLayer(l));
-            comparisonLines = []; }
 
         function smoothCurve(coords, steps = 20) {
             if (!coords || coords.length < 2) return coords;
@@ -1363,6 +1434,7 @@
             if (!coords || coords.length < 2) return;
 
             currentRouteCoords = coords;
+            currentGeneratedCoords = coords;
             const smoothed = smoothCurve(coords, 25);
             
             if (smoothed.length < 3) {
@@ -1465,7 +1537,7 @@
                 pointer-events: none;
             `;
             legend.innerHTML = `
-                <div style="font-weight:600; color:#1a3e4f; margin-bottom:4px;">🚢 Rute</div>
+                <div style="font-weight:600; color:#1a3e4f; margin-bottom:4px;">🚢 Rute Generate</div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span style="display:inline-block; width:24px; height:4px; background:#FF0000; border-radius:2px;"></span>
                     <span style="color:#333;">Awal (Merah)</span>
@@ -1480,202 +1552,6 @@
                 </div>
             `;
             document.getElementById('map').appendChild(legend);
-        }
-
-        function drawRouteAsCurve(coords) {
-            drawRouteWithThreeColors(coords);
-        }
-
-        // ============================================================
-        // COMPARISON FUNCTION
-        // ============================================================
-        function compareRouteWithTrajectory(pathIds) {
-            if (!selectedTrajectoryVessel || !selectedTrajectoryVessel.route) {
-                alert('⚠️ Pilih kapal trajectory terlebih dahulu!');
-                return;
-            }
-
-            const trajRoute = selectedTrajectoryVessel.route;
-            if (trajRoute.length < 2) {
-                alert('⚠️ Trajectory tidak memiliki rute yang valid!');
-                return;
-            }
-
-            // Hapus comparison lines sebelumnya
-            clearComparisonLines();
-
-            // Ambil koordinat rute yang digenerate
-            const routeCoords = [];
-            for (let id of pathIds) {
-                if (typeof id === 'number') {
-                    routeCoords.push([waypoints[id].lat, waypoints[id].lng]);
-                }
-            }
-
-            if (routeCoords.length < 2) {
-                alert('⚠️ Rute tidak memiliki cukup waypoint!');
-                return;
-            }
-
-            // Ambil koordinat trajectory
-            const trajCoords = trajRoute.map(p => [p[0], p[1]]);
-
-            // Hitung jarak antar waypoint untuk rute
-            const routeDistances = [];
-            for (let i = 1; i < routeCoords.length; i++) {
-                routeDistances.push({
-                    from: i - 1,
-                    to: i,
-                    distance: distKm(routeCoords[i - 1], routeCoords[i])
-                });
-            }
-
-            // Hitung jarak antar waypoint untuk trajectory
-            const trajDistances = [];
-            for (let i = 1; i < trajCoords.length; i++) {
-                trajDistances.push({
-                    from: i - 1,
-                    to: i,
-                    distance: distKm(trajCoords[i - 1], trajCoords[i])
-                });
-            }
-
-            // Bandingkan jarak (ambil sampel dari rute yang digenerate, cari trajectory terdekat)
-            const comparisons = [];
-            const routeTotal = routeDistances.reduce((sum, d) => sum + d.distance, 0);
-            const trajTotal = trajDistances.reduce((sum, d) => sum + d.distance, 0);
-
-            // Untuk setiap segmen rute, cari segmen trajectory terdekat berdasarkan posisi
-            for (let i = 0; i < routeDistances.length; i++) {
-                const rd = routeDistances[i];
-                // Cari trajectory point terdekat dengan midpoint rute
-                const midIdx = Math.floor((rd.from + rd.to) / 2);
-                const midCoord = routeCoords[midIdx] || routeCoords[rd.from];
-                
-                // Cari trajectory point terdekat
-                let minDist = Infinity;
-                let closestTrajIdx = 0;
-                for (let j = 0; j < trajCoords.length; j++) {
-                    const d = distKm(midCoord, trajCoords[j]);
-                    if (d < minDist) {
-                        minDist = d;
-                        closestTrajIdx = j;
-                    }
-                }
-
-                // Ambil segmen trajectory terdekat
-                let trajSegmentDist = 0;
-                if (closestTrajIdx < trajDistances.length) {
-                    trajSegmentDist = trajDistances[closestTrajIdx].distance;
-                } else if (closestTrajIdx > 0 && closestTrajIdx - 1 < trajDistances.length) {
-                    trajSegmentDist = trajDistances[closestTrajIdx - 1].distance;
-                } else if (trajDistances.length > 0) {
-                    trajSegmentDist = trajDistances[0].distance;
-                }
-
-                const diff = rd.distance - trajSegmentDist;
-                const diffPercent = trajSegmentDist > 0 ? (diff / trajSegmentDist) * 100 : 0;
-
-                comparisons.push({
-                    routeIndex: i,
-                    routeDistance: rd.distance,
-                    trajDistance: trajSegmentDist,
-                    diff: diff,
-                    diffPercent: diffPercent,
-                    routeCoord1: routeCoords[rd.from],
-                    routeCoord2: routeCoords[rd.to]
-                });
-            }
-
-            // Tampilkan hasil comparison
-            const panel = document.getElementById('comparisonPanel');
-            const content = document.getElementById('comparisonContent');
-            panel.style.display = 'block';
-
-            let html = '';
-            let totalDiff = 0;
-
-            for (let i = 0; i < comparisons.length; i++) {
-                const c = comparisons[i];
-                totalDiff += Math.abs(c.diff);
-                const diffClass = Math.abs(c.diff) < 0.5 ? 'small' : (Math.abs(c.diff) < 2 ? 'medium' : 'large');
-                const diffColor = Math.abs(c.diff) < 0.5 ? '#27ae60' : (Math.abs(c.diff) < 2 ? '#e67e22' : '#e74c3c');
-                
-                html += `
-                    <div class="comparison-item">
-                        <span class="wp-label">📍 Segmen ${i+1}</span>
-                        <span>Rute: <span class="wp-distance">${c.routeDistance.toFixed(3)} km</span></span>
-                        <span>Trajectory: <span class="wp-distance">${c.trajDistance.toFixed(3)} km</span></span>
-                        <span class="wp-diff ${diffClass}">${c.diff > 0 ? '+' : ''}${c.diff.toFixed(3)} km (${c.diffPercent.toFixed(1)}%)</span>
-                    </div>
-                `;
-
-                // Gambar garis comparison di peta
-                const midPoint = [
-                    (c.routeCoord1[0] + c.routeCoord2[0]) / 2,
-                    (c.routeCoord1[1] + c.routeCoord2[1]) / 2
-                ];
-                
-                // Garis vertikal untuk menunjukkan selisih
-                const line = L.polyline([
-                    midPoint,
-                    [midPoint[0] + 0.01 * Math.sign(c.diff || 0.01), midPoint[1]]
-                ], {
-                    color: diffColor,
-                    weight: 2,
-                    dashArray: '5, 5',
-                    opacity: 0.7,
-                    interactive: false
-                }).addTo(map);
-                comparisonLines.push(line);
-
-                // Label selisih
-                const label = L.divIcon({
-                    html: `<div style="background:${diffColor}; color:white; padding:2px 6px; border-radius:8px; font-size:9px; font-weight:bold; white-space:nowrap;">${c.diff > 0 ? '+' : ''}${c.diff.toFixed(2)}km</div>`,
-                    iconSize: [60, 20],
-                    iconAnchor: [30, 10]
-                });
-                const marker = L.marker(midPoint, { icon: label, interactive: false }).addTo(map);
-                comparisonLines.push(marker);
-            }
-
-            const avgDiff = comparisons.length > 0 ? totalDiff / comparisons.length : 0;
-            const maxDiff = comparisons.length > 0 ? Math.max(...comparisons.map(c => Math.abs(c.diff))) : 0;
-            const minDiff = comparisons.length > 0 ? Math.min(...comparisons.map(c => Math.abs(c.diff))) : 0;
-
-            html += `
-                <div class="comparison-summary">
-                    <div class="item"><span class="label">Total Segmen</span><span class="value">${comparisons.length}</span></div>
-                    <div class="item"><span class="label">Rata-rata Selisih</span><span class="value highlight">${avgDiff.toFixed(3)} km</span></div>
-                    <div class="item"><span class="label">Selisih Maks</span><span class="value highlight">${maxDiff.toFixed(3)} km</span></div>
-                    <div class="item"><span class="label">Selisih Min</span><span class="value highlight">${minDiff.toFixed(3)} km</span></div>
-                    <div class="item" style="grid-column: span 2; border-top: 1px solid #d4e2ec; padding-top: 6px; margin-top: 4px;">
-                        <span class="label">Total Jarak Rute</span>
-                        <span class="value">${routeTotal.toFixed(3)} km</span>
-                    </div>
-                    <div class="item" style="grid-column: span 2;">
-                        <span class="label">Total Jarak Trajectory</span>
-                        <span class="value">${trajTotal.toFixed(3)} km</span>
-                    </div>
-                    <div class="item" style="grid-column: span 2; border-top: 1px solid #d4e2ec; padding-top: 6px; margin-top: 4px;">
-                        <span class="label">Total Selisih Jarak</span>
-                        <span class="value highlight">${(routeTotal - trajTotal).toFixed(3)} km (${((routeTotal - trajTotal) / trajTotal * 100).toFixed(1)}%)</span>
-                    </div>
-                </div>
-            `;
-
-            content.innerHTML = html;
-
-            setStatus(`📊 Perbandingan: ${comparisons.length} segmen, rata-rata selisih ${avgDiff.toFixed(3)} km`, "#8e44ad");
-            setInfo(`Perbandingan rute vs trajectory: ${comparisons.length} segmen dianalisis`);
-
-            // Fit bounds ke semua comparison lines
-            if (comparisonLines.length > 0) {
-                const bounds = L.latLngBounds(comparisonLines.map(l => l.getLatLng ? l.getLatLng() : l.getLatLngs ? l.getLatLngs().flat() : null).filter(Boolean));
-                if (bounds.isValid()) {
-                    map.fitBounds(bounds, { padding: [80, 80] });
-                }
-            }
         }
 
         // ============================================================
@@ -1745,10 +1621,8 @@
                 return;
             }
 
-            // Set MMSI
             document.getElementById('shipMMSI').value = v.mmsi || '';
             
-            // Set Length & Draft
             if (v.length) {
                 document.getElementById('shipLength').value = v.length;
                 currentShipLength = v.length;
@@ -1758,7 +1632,6 @@
                 currentShipDraft = v.draft;
             }
             
-            // Set START dari titik pertama rute
             const firstPoint = v.route[0];
             if (firstPoint && firstPoint.length === 2) {
                 start = [firstPoint[0], firstPoint[1]];
@@ -1777,7 +1650,6 @@
                 map.setView([firstPoint[0], firstPoint[1]], 12);
             }
             
-            // Set END dari titik terakhir rute
             const lastPoint = v.route[v.route.length - 1];
             if (lastPoint && lastPoint.length === 2) {
                 end = [lastPoint[0], lastPoint[1]];
@@ -1791,13 +1663,11 @@
                 }).addTo(map).bindPopup(`TUJUAN: ${v.name || v.mmsi}`).openPopup();
             }
             
-            // Isi UKC panel dengan data kapal
             if (v.name) document.getElementById('ukcShipName').value = v.name;
             if (v.length) document.getElementById('ukcLength').value = v.length;
             if (v.draft) document.getElementById('ukcStaticDraft').value = v.draft;
             if (v.width) document.getElementById('ukcBreadth').value = v.width;
             
-            // Simpan telemetry dummy
             activeShipTelemetry = {
                 mmsi: v.mmsi,
                 lat: firstPoint[0],
@@ -1817,8 +1687,8 @@
             setStatus(`✅ Kapal ${v.name || v.mmsi} dimuat dari trajectory`, "#8e44ad");
             setInfo(`Trajectory: ${v.route.length} waypoints, ${v.type || 'Unknown type'}`);
             
-            // Tampilkan rute trajectory di peta
             showTrajectoryRoute();
+            clearComparisonData();
         }
 
         function showTrajectoryRoute() {
@@ -1835,13 +1705,11 @@
                 return;
             }
             
-            // Hapus trajectory route sebelumnya
             if (trajectoryRouteLine) {
                 map.removeLayer(trajectoryRouteLine);
                 trajectoryRouteLine = null;
             }
             
-            // Gambar rute trajectory dengan warna berbeda (biru muda)
             const routeCoords = v.route.map(p => [p[0], p[1]]);
             trajectoryRouteLine = L.polyline(routeCoords, {
                 color: '#3498db',
@@ -1851,7 +1719,6 @@
                 smoothFactor: 1
             }).addTo(map);
             
-            // Tambahkan marker untuk setiap waypoint trajectory (kecil)
             for (let i = 0; i < v.route.length; i++) {
                 const p = v.route[i];
                 if (i % 10 === 0 || i === 0 || i === v.route.length - 1) {
@@ -1863,7 +1730,7 @@
                         opacity: 1,
                         fillOpacity: 0.8
                     }).addTo(map);
-                    marker.bindTooltip(`📍 ${p[0].toFixed(4)}°, ${p[1].toFixed(4)}°`, {
+                    marker.bindTooltip(`📍 Trajectory ${i}: ${p[0].toFixed(4)}°, ${p[1].toFixed(4)}°`, {
                         permanent: false,
                         direction: 'top',
                         offset: [0, -5],
@@ -1872,14 +1739,169 @@
                 }
             }
             
-            // Fit bounds ke route
             map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
-            
             setInfo(`Trajectory: ${v.name || v.mmsi} (${v.route.length} waypoints) ditampilkan dengan garis biru putus-putus`);
         }
 
         // ============================================================
-        // END TRAJECTORY FUNCTIONS
+        // COMPARISON FUNCTIONS
+        // ============================================================
+        function clearComparisonData() {
+            comparisonData = [];
+            comparisonLines.forEach(line => map.removeLayer(line));
+            comparisonLines = [];
+            document.getElementById('comparisonPanel').style.display = 'none';
+        }
+
+        function findClosestPointOnRoute(target, routePoints) {
+            let minDist = Infinity;
+            let closestIdx = 0;
+            for (let i = 0; i < routePoints.length; i++) {
+                const d = distKm(target, routePoints[i]);
+                if (d < minDist) {
+                    minDist = d;
+                    closestIdx = i;
+                }
+            }
+            return { idx: closestIdx, distance: minDist };
+        }
+
+        function compareRoutes() {
+            // Hapus data perbandingan sebelumnya
+            comparisonLines.forEach(line => map.removeLayer(line));
+            comparisonLines = [];
+            
+            const select = document.getElementById('vesselSelect');
+            const idx = parseInt(select.value);
+            if (isNaN(idx) || idx < 0 || idx >= trajectoryVessels.length) {
+                alert('Pilih kapal trajectory terlebih dahulu!');
+                return;
+            }
+            
+            const v = trajectoryVessels[idx];
+            if (!v || !v.route || v.route.length < 2) {
+                alert('Kapal trajectory tidak memiliki rute yang valid!');
+                return;
+            }
+            
+            if (!currentGeneratedCoords || currentGeneratedCoords.length < 2) {
+                alert('Generate rute terlebih dahulu! Klik "GENERATE RUTE"');
+                return;
+            }
+            
+            const trajectoryPoints = v.route.map(p => [p[0], p[1]]);
+            const generatedPoints = currentGeneratedCoords;
+            
+            // Ambil sample dari trajectory (kurangi jumlah titik untuk perbandingan yang lebih jelas)
+            const sampleStep = Math.max(1, Math.floor(trajectoryPoints.length / Math.min(trajectoryPoints.length, 30)));
+            const sampledTrajectory = [];
+            for (let i = 0; i < trajectoryPoints.length; i += sampleStep) {
+                sampledTrajectory.push(trajectoryPoints[i]);
+            }
+            if (sampledTrajectory[sampledTrajectory.length - 1] !== trajectoryPoints[trajectoryPoints.length - 1]) {
+                sampledTrajectory.push(trajectoryPoints[trajectoryPoints.length - 1]);
+            }
+            
+            // Bandingkan setiap titik trajectory dengan titik terdekat di rute generate
+            comparisonData = [];
+            let totalDiff = 0;
+            let maxDiff = 0;
+            
+            for (let i = 0; i < sampledTrajectory.length; i++) {
+                const trajPoint = sampledTrajectory[i];
+                const closest = findClosestPointOnRoute(trajPoint, generatedPoints);
+                
+                const diff = closest.distance;
+                totalDiff += diff;
+                if (diff > maxDiff) maxDiff = diff;
+                
+                // Gambar garis penghubung
+                const line = L.polyline([trajPoint, generatedPoints[closest.idx]], {
+                    color: '#8e44ad',
+                    weight: 1.5,
+                    opacity: 0.4,
+                    dashArray: '4, 4'
+                }).addTo(map);
+                comparisonLines.push(line);
+                
+                // Marker titik trajectory
+                const marker = L.circleMarker(trajPoint, {
+                    radius: 5,
+                    fillColor: '#3498db',
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+                comparisonLines.push(marker);
+                marker.bindTooltip(`Trajectory ${i}: ${trajPoint[0].toFixed(4)}, ${trajPoint[1].toFixed(4)}<br>Selisih: ${diff.toFixed(3)} km`, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -8],
+                    className: 'waypoint-marker-label'
+                });
+                
+                // Marker titik generate terdekat
+                const genPoint = generatedPoints[closest.idx];
+                const genMarker = L.circleMarker(genPoint, {
+                    radius: 4,
+                    fillColor: '#e67e22',
+                    color: '#ffffff',
+                    weight: 1.5,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                comparisonLines.push(genMarker);
+                genMarker.bindTooltip(`Generate: ${genPoint[0].toFixed(4)}, ${genPoint[1].toFixed(4)}`, {
+                    permanent: false,
+                    direction: 'bottom',
+                    offset: [0, 8],
+                    className: 'waypoint-marker-label'
+                });
+                
+                comparisonData.push({
+                    index: i,
+                    trajLat: trajPoint[0],
+                    trajLng: trajPoint[1],
+                    genLat: genPoint[0],
+                    genLng: genPoint[1],
+                    diffKm: diff
+                });
+            }
+            
+            const avgDiff = totalDiff / sampledTrajectory.length;
+            
+            // Update UI
+            document.getElementById('compTotalDiff').textContent = totalDiff.toFixed(3);
+            document.getElementById('compAvgDiff').textContent = avgDiff.toFixed(3);
+            document.getElementById('compMaxDiff').textContent = maxDiff.toFixed(3);
+            document.getElementById('compAvgLabel').textContent = `Rata-rata selisih: ${avgDiff.toFixed(3)} km`;
+            
+            // Tabel
+            const tbody = document.getElementById('compTableBody');
+            tbody.innerHTML = '';
+            for (const d of comparisonData) {
+                const tr = document.createElement('tr');
+                let diffClass = 'diff-small';
+                if (d.diffKm > 0.5) diffClass = 'diff-medium';
+                if (d.diffKm > 1.0) diffClass = 'diff-large';
+                
+                tr.innerHTML = `
+                    <td>${d.index + 1}</td>
+                    <td>${d.trajLat.toFixed(4)}, ${d.trajLng.toFixed(4)}</td>
+                    <td>${d.genLat.toFixed(4)}, ${d.genLng.toFixed(4)}</td>
+                    <td class="diff-highlight ${diffClass}">${d.diffKm.toFixed(3)}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            document.getElementById('comparisonPanel').style.display = 'block';
+            setStatus(`📊 Perbandingan: ${comparisonData.length} titik, rata-rata ${avgDiff.toFixed(3)} km`, "#8e44ad");
+            setInfo(`Perbandingan rute: ${comparisonData.length} titik trajectory dibandingkan dengan rute generate`);
+        }
+
+        // ============================================================
+        // END COMPARISON FUNCTIONS
         // ============================================================
 
         async function loadMode(modeName) {
@@ -1892,7 +1914,7 @@
             clearIslandPolygons();
             clearDepthPolygons();
             clearWaypointMarkers();
-            clearComparisonLines();
+            clearComparisonData();
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -1910,6 +1932,8 @@
             startMarker = endMarker = null;
             start = end = null;
             currentRouteCoords = [];
+            currentGeneratedCoords = [];
+            currentGeneratedPathIds = [];
             stopAnimation();
             if (shipMarker) map.removeLayer(shipMarker);
 
@@ -1994,7 +2018,6 @@
                         setStatus(`⚓ ${ports.length} pelabuhan`, "#1f7e9e");
                         setupPortSearch(); } } catch (e) { console.log("pelabuhan.json opsional"); }
                 
-                // Load Trajectory data
                 await loadTrajectoryData();
             } else { islands = [];
                 setStatus(`🔹 BIGRU: tanpa pulau`, "#2f7f5f");
@@ -2106,6 +2129,17 @@
                 lines.push(`   Status        : ${lastUkcResult.status}`);
             }
 
+            // Tambahkan info perbandingan jika ada
+            if (comparisonData.length > 0) {
+                const avgDiff = comparisonData.reduce((sum, d) => sum + d.diffKm, 0) / comparisonData.length;
+                lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                lines.push(`📊 PERBANDINGAN RUTE:`);
+                lines.push(`   Titik dibanding : ${comparisonData.length}`);
+                lines.push(`   Rata-rata selisih : ${avgDiff.toFixed(3)} km`);
+                lines.push(`   Max selisih : ${Math.max(...comparisonData.map(d => d.diffKm)).toFixed(3)} km`);
+                lines.push(`   <span class="info">Lihat panel "PERBANDINGAN RUTE" untuk detail</span>`);
+            }
+
             lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
             lines.push(`🛳️  <span class="info">Navigasi aman, selalu perbarui data kedalaman.</span>`);
 
@@ -2113,9 +2147,8 @@
         }
 
         // ============================================================
-        // END AI RESPONSE
+        // RUN ROUTE
         // ============================================================
-
         async function runRoute() {
             if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih dari Trajectory."); return; }
             if (!end) { alert("⚠️ Belum ada pelabuhan tujuan! Pilih tujuan."); return; }
@@ -2166,15 +2199,15 @@
             showProgress(0.85);
             if (!pathIds || pathIds.length < 2) { if (canSee(start, end, 45)) { drawRouteWithThreeColors([start, end]);
                     setStatus(`✅ Jalur Langsung: ${distKm(start,end).toFixed(1)} km`, "#2ecc71");
-                    showWaypointMarkersFromPath([]); } else { setStatus("❌ Rute tidak ditemukan", "red"); }
+                    showWaypointMarkersFromPath([]);
+                    currentGeneratedPathIds = [];
+                    currentGeneratedCoords = [start, end]; } else { setStatus("❌ Rute tidak ditemukan", "red"); }
                 showProgress(1);
                 setTimeout(hideProgress, 500);
                 isRouting = false; return; }
-            
-            // Simpan pathIds untuk perbandingan
-            lastRoutePathIds = pathIds;
-            
             const rawCoords = pathIds.map(id => coordOf(id));
+            currentGeneratedPathIds = pathIds;
+            currentGeneratedCoords = rawCoords;
             drawRouteWithThreeColors(rawCoords);
             let totalKm = 0;
             let unsafeWaypointsCount = 0;
@@ -2208,6 +2241,13 @@
             endDepth);
             responseBody.innerHTML = aiMessage;
             responsePanel.style.display = 'block';
+
+            // Auto compare jika ada trajectory yang dipilih
+            const select = document.getElementById('vesselSelect');
+            const idx = parseInt(select.value);
+            if (!isNaN(idx) && idx >= 0 && idx < trajectoryVessels.length) {
+                setTimeout(() => compareRoutes(), 500);
+            }
 
             if (unsafeWaypointsCount > 0) {
                 // sudah tampil di response
@@ -2283,8 +2323,10 @@
                     }
                     routeLine = null;
                     currentRouteCoords = [];
+                    currentGeneratedCoords = [];
                     stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                    clearWaypointMarkers(); 
+                    clearWaypointMarkers();
+                    clearComparisonData();
                     const oldLegend = document.querySelector('.route-legend');
                     if (oldLegend) oldLegend.remove();
                 }
@@ -2331,8 +2373,10 @@
                 }
                 routeLine = null;
                 currentRouteCoords = [];
+                currentGeneratedCoords = [];
                 stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                clearWaypointMarkers(); 
+                clearWaypointMarkers();
+                clearComparisonData();
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
             } }
@@ -2359,8 +2403,10 @@
                 }
                 routeLine = null;
                 currentRouteCoords = [];
+                currentGeneratedCoords = [];
                 stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                clearWaypointMarkers(); 
+                clearWaypointMarkers();
+                clearComparisonData();
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
             } }
@@ -2378,13 +2424,10 @@
                 }
                 routeLine = null;
             }
-            // Hapus trajectory route
             if (trajectoryRouteLine) {
                 map.removeLayer(trajectoryRouteLine);
                 trajectoryRouteLine = null;
             }
-            // Hapus comparison lines
-            clearComparisonLines();
             if (startMarker) map.removeLayer(startMarker); 
             if (endMarker) map.removeLayer(endMarker); 
             if (shipMarker) map.removeLayer(shipMarker);
@@ -2394,6 +2437,8 @@
             activeShipTelemetry = null;
             routeLine = startMarker = endMarker = shipMarker = null;
             currentRouteCoords = [];
+            currentGeneratedCoords = [];
+            currentGeneratedPathIds = [];
             document.getElementById('startLat').value = '';
             document.getElementById('startLng').value = '';
             document.getElementById('endLat').value = '';
@@ -2411,12 +2456,11 @@
             document.getElementById('infoDraft').textContent = '-';
             document.getElementById('infoCargo').textContent = '-';
             document.getElementById('infoWaypoints').textContent = '-';
-            document.getElementById('comparisonPanel').style.display = 'none';
-            document.getElementById('comparisonContent').innerHTML = '';
             setStatus("Reset selesai.", "#447799");
             setInfo("Mode aktif.");
             document.getElementById('liveTelemetryPanel').style.display = 'none';
             clearWaypointMarkers();
+            clearComparisonData();
             document.getElementById('responsePanel').style.display = 'none';
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
@@ -2444,8 +2488,10 @@
                 }
                 routeLine = null;
                 currentRouteCoords = [];
+                currentGeneratedCoords = [];
                 stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                clearWaypointMarkers(); 
+                clearWaypointMarkers();
+                clearComparisonData();
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
             } }
@@ -2609,6 +2655,10 @@
         document.getElementById('clearUkcBtn').addEventListener('click', clearUkcResult);
         document.getElementById('getDepthFromWaypointBtn').addEventListener('click', getDepthFromSelectedWaypoint);
 
+        // Comparison event listeners
+        document.getElementById('compareRouteBtn').addEventListener('click', compareRoutes);
+        document.getElementById('clearCompareBtn').addEventListener('click', clearComparisonData);
+
         // Trajectory event listeners
         document.getElementById('vesselSelect').addEventListener('change', function() {
             const idx = parseInt(this.value);
@@ -2621,15 +2671,6 @@
 
         document.getElementById('loadTrajectoryBtn').addEventListener('click', loadTrajectoryVessel);
         document.getElementById('showTrajectoryBtn').addEventListener('click', showTrajectoryRoute);
-        
-        // Comparison button
-        document.getElementById('compareRouteBtn').addEventListener('click', function() {
-            if (!lastRoutePathIds || lastRoutePathIds.length < 2) {
-                alert('⚠️ Generate rute terlebih dahulu!');
-                return;
-            }
-            compareRouteWithTrajectory(lastRoutePathIds);
-        });
 
         // Map click
         map.on('click', e => { if (!pickMode || isRouting) return; const { lat, lng } = e.latlng; if (islands.length &&
@@ -2660,8 +2701,10 @@
                     }
                     routeLine = null;
                     currentRouteCoords = [];
+                    currentGeneratedCoords = [];
                     stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                    clearWaypointMarkers(); 
+                    clearWaypointMarkers();
+                    clearComparisonData();
                     const oldLegend = document.querySelector('.route-legend');
                     if (oldLegend) oldLegend.remove();
                 }
@@ -2686,7 +2729,8 @@
         setRouteMode("AUTO");
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
-            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan", "#2f9e6b");
+            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan. Klik 'Bandingkan Rute' untuk melihat selisih dengan trajectory.",
+            "#2f9e6b");
     </script>
 </body>
 </html>
