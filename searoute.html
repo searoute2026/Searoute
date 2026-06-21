@@ -1059,6 +1059,11 @@
             attribution: ''
         }).addTo(map);
 
+        // ============================================================
+        // KONSTANTA KEDALAMAN
+        // ============================================================
+        const DEPTH_NOT_FOUND = 10000; // Nilai default untuk area tanpa data kedalaman
+
         let islands = [],
             waypoints = [],
             wpGraph = {},
@@ -1137,15 +1142,18 @@
             return polygon;
         }
 
+        // ============================================================
+        // FUNGSI KEDALAMAN - Menggunakan DEPTH_NOT_FOUND = 10000
+        // ============================================================
         function getDepthAt(lat, lng) {
-            if (!depthZones.length) return 999;
+            if (!depthZones.length) return DEPTH_NOT_FOUND;
             for (const zone of depthZones) {
                 const polygon = zone.latLngPolygon || zone.polygon;
                 if (polygon && pointInPolygon([lat, lng], polygon)) {
                     return zone.depth;
                 }
             }
-            return 999;
+            return DEPTH_NOT_FOUND;
         }
 
         // ============================================================
@@ -1168,9 +1176,9 @@
 
         function getDepthFromData(lat, lng) {
             const depth = getDepthAt(lat, lng);
-            if (depth !== 999) return depth;
+            if (depth !== DEPTH_NOT_FOUND) return depth;
             
-            if (!waypoints.length) return 999;
+            if (!waypoints.length) return DEPTH_NOT_FOUND;
             let nearest = null;
             let minDist = Infinity;
             for (const wp of waypoints) {
@@ -1183,7 +1191,7 @@
             if (nearest && minDist < 1.0) {
                 return getDepthAt(nearest.lat, nearest.lng);
             }
-            return 999;
+            return DEPTH_NOT_FOUND;
         }
 
         function getDepthFromSelectedWaypoint() {
@@ -1196,7 +1204,7 @@
             const lng = start[1];
             const depth = getDepthFromData(lat, lng);
             
-            if (depth === 999) {
+            if (depth === DEPTH_NOT_FOUND) {
                 alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi ini. Pastikan data kedalaman.json dan waypoint telah dimuat.');
                 return;
             }
@@ -1279,6 +1287,7 @@
         }
 
         function isUkcSafe(depthMeters) {
+            if (depthMeters >= DEPTH_NOT_FOUND) return true; // Area dalam dianggap aman
             if (!lastUkcResult || lastUkcResult.status === 'NOT ACCEPTABLE') {
                 const dynamicDraft = Math.max(ukcInputs.trimDraft, ukcInputs.listingDraft) + ukcInputs.squat + ukcInputs
                     .waveMotion;
@@ -1369,7 +1378,7 @@
                     fillOpacity: 0.9
                 }).addTo(map);
                 const safetyIcon = safe ? "✅" : "⚠️";
-                const depthText = depth >= 999 ? "Deep (>999m)" : `${depth.toFixed(1)}m`;
+                const depthText = depth >= DEPTH_NOT_FOUND ? "Deep (>10000m)" : `${depth.toFixed(1)}m`;
                 marker.bindTooltip(
                     `📍 ${wp.lat.toFixed(5)}°, ${wp.lng.toFixed(5)}°<br>🌊 ${depthText} ${safetyIcon}${ukcInfo}`, {
                         permanent: false,
@@ -2139,10 +2148,10 @@
                 lines.push(`✅ <span class="safe">Semua waypoint aman berdasarkan UKC</span>`);
             }
 
-            if (startDepth < 999 && !isUkcSafe(startDepth)) {
+            if (startDepth < DEPTH_NOT_FOUND && !isUkcSafe(startDepth)) {
                 lines.push(`⚠️ <span class="danger">START berada di kedalaman ${startDepth.toFixed(1)}m (tidak aman)</span>`);
             }
-            if (endDepth < 999 && !isUkcSafe(endDepth)) {
+            if (endDepth < DEPTH_NOT_FOUND && !isUkcSafe(endDepth)) {
                 lines.push(`⚠️ <span class="danger">TUJUAN berada di kedalaman ${endDepth.toFixed(1)}m (tidak aman)</span>`);
             }
 
@@ -2180,8 +2189,8 @@
             const endDepth = getDepthAt(end[0], end[1]);
             let warningMsg = "";
 
-            const isStartSafe = isUkcSafe(startDepth);
-            const isEndSafe = isUkcSafe(endDepth);
+            const isStartSafe = (startDepth >= DEPTH_NOT_FOUND) || isUkcSafe(startDepth);
+            const isEndSafe = (endDepth >= DEPTH_NOT_FOUND) || isUkcSafe(endDepth);
 
             if (!isStartSafe) warningMsg += `⚠️ START di kedalaman ${startDepth.toFixed(1)}m (tidak aman berdasarkan UKC)! `;
             if (!isEndSafe) warningMsg += `⚠️ TUJUAN di kedalaman ${endDepth.toFixed(1)}m (tidak aman berdasarkan UKC)! `;
@@ -2543,7 +2552,7 @@
             if (waterDepth === 0 || waterDepth === undefined) {
                 if (start) {
                     waterDepth = getDepthFromData(start[0], start[1]);
-                    if (waterDepth === 999) {
+                    if (waterDepth === DEPTH_NOT_FOUND) {
                         alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi START. Klik "Ambil Kedalaman dari Waypoint" terlebih dahulu.');
                         return;
                     }
