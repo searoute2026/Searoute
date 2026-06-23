@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        /* ... (styles sama seperti sebelumnya) ... */
         * {
             margin: 0;
             padding: 0;
@@ -437,7 +436,6 @@
             touch-action: manipulation;
         }
 
-        /* UKC Panel */
         .ukc-panel {
             background: #f7fbfe;
             border-radius: 16px;
@@ -569,7 +567,6 @@
             padding-top: 6px;
         }
 
-        /* Response Panel */
         .response-panel {
             background: #f0f8fe;
             border-radius: 16px;
@@ -617,7 +614,6 @@
             color: #2471a3;
         }
 
-        /* Trajectory Vessel Selector */
         .trajectory-selector {
             background: #f0f8fe;
             border-radius: 16px;
@@ -705,7 +701,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            min-width: 70px;
+            min-width: 80px;
         }
         .trajectory-selector .traj-actions .btn-load {
             background: #1f7e9e;
@@ -733,17 +729,7 @@
             background: #27ae60;
             transform: scale(0.98);
         }
-        .trajectory-selector .traj-actions .btn-compare {
-            background: #8e44ad;
-            color: white;
-            border: none;
-        }
-        .trajectory-selector .traj-actions .btn-compare:active {
-            background: #7d3c98;
-            transform: scale(0.98);
-        }
 
-        /* Distance Comparison Panel - Enhanced */
         .comparison-panel {
             background: #f7fbfe;
             border-radius: 16px;
@@ -864,24 +850,11 @@
             color: #27ae60;
         }
 
-        /* Scrollbar styling */
-        .comparison-panel::-webkit-scrollbar {
-            width: 4px;
-        }
-        .comparison-panel::-webkit-scrollbar-track {
-            background: #eef3f8;
-            border-radius: 4px;
-        }
-        .comparison-panel::-webkit-scrollbar-thumb {
-            background: #8e44ad;
-            border-radius: 4px;
-        }
-
-        /* Route Legend - Updated with new colors */
-        .route-legend {
+        /* SEGMENT ROUTE LEGEND */
+        .segment-legend {
             position: absolute;
             bottom: 30px;
-            right: 30px;
+            left: 30px;
             background: rgba(255,255,255,0.95);
             padding: 12px 16px;
             border-radius: 12px;
@@ -895,25 +868,27 @@
             gap: 4px;
             pointer-events: none;
         }
-        .route-legend .legend-title {
-            font-weight: 700;
-            color: #1a3e4f;
-            margin-bottom: 4px;
-            font-size: 13px;
-        }
-        .route-legend .legend-item {
+        .segment-legend .seg-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 12px;
-            color: #333;
         }
-        .route-legend .legend-color {
-            display: inline-block;
+        .segment-legend .seg-color {
             width: 30px;
             height: 4px;
             border-radius: 2px;
-            flex-shrink: 0;
+        }
+
+        .comparison-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .comparison-panel::-webkit-scrollbar-track {
+            background: #eef3f8;
+            border-radius: 4px;
+        }
+        .comparison-panel::-webkit-scrollbar-thumb {
+            background: #8e44ad;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -926,19 +901,16 @@
             <div class="toggle-icon" id="navToggleBtn"><i class="fas fa-chevron-down" id="toggleIcon"></i></div>
         </div>
         <div class="nav-content">
-            <!-- Mode tabs -->
             <div class="mode-tabs">
                 <button class="mode-tab" id="modeBigruBtn"><i class="fas fa-database"></i> BIGRU</button>
                 <button class="mode-tab" id="modeBiltsmBtn"><i class="fas fa-globe"></i> BILTSM</button>
             </div>
 
-            <!-- Route mode -->
             <div class="route-mode-selector">
                 <button class="route-mode-btn" id="routeModeManualBtn"><i class="fas fa-hand-pointer"></i> MANUAL</button>
                 <button class="route-mode-btn active" id="routeModeAutoBtn"><i class="fas fa-magic"></i> AUTO</button>
             </div>
 
-            <!-- AUTO panel -->
             <div id="autoModePanel">
                 <div class="input-group">
                     <div class="input-label"><i class="fas fa-flag-checkered"></i> PELABUHAN TUJUAN</div>
@@ -956,7 +928,6 @@
                 </div>
             </div>
 
-            <!-- MANUAL panel -->
             <div id="manualModePanel" style="display: none;">
                 <div class="input-group">
                     <div class="input-label"><i class="fas fa-map-marker-alt"></i> TITIK AWAL (Manual)</div>
@@ -979,7 +950,9 @@
                 </div>
             </div>
 
-            <!-- TRAJECTORY VESSEL SELECTOR -->
+            <!-- TOMBOL GENERATE RUTE SEGMEN -->
+            <button class="btn-primary" id="generateSegmenBtn" style="background:#8e44ad;"><i class="fas fa-route"></i> GENERATE RUTE 3 SEGMEN</button>
+
             <div class="trajectory-selector" id="trajectorySelector">
                 <div class="traj-header">
                     <i class="fas fa-route"></i>
@@ -1008,12 +981,11 @@
                 <div class="traj-actions">
                     <button class="btn-load" id="loadTrajectoryBtn"><i class="fas fa-ship"></i> Muat Kapal</button>
                     <button class="btn-show" id="showTrajectoryBtn"><i class="fas fa-map"></i> Tampilkan Rute</button>
-                    <button class="btn-compare" id="compareRouteBtn"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
+                    <button class="btn-show" id="compareRouteBtn" style="background:#8e44ad; color:white; border:none;"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
                     <button class="btn-depth" id="checkTrajectoryDepthBtn"><i class="fas fa-water"></i> Cek Kedalaman</button>
                 </div>
             </div>
 
-            <!-- Kapal -->
             <div class="input-group">
                 <div class="input-label"><i class="fas fa-satellite-dish"></i> KAPAL (START OTOMATIS)</div>
                 <div class="flex-row">
@@ -1026,7 +998,6 @@
                 <button id="fetchShipByMmsiBtn" style="width:100%; background:#d4eaf3; border:none; padding:10px; border-radius:40px;"><i class="fas fa-search"></i> Pilih Kapal & Set START</button>
             </div>
 
-            <!-- UKC Panel -->
             <div class="ukc-panel" id="ukcPanel">
                 <div class="ukc-header">
                     <i class="fas fa-water"></i>
@@ -1065,7 +1036,6 @@
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
 
-            <!-- Comparison Panel -->
             <div class="comparison-panel" id="comparisonPanel">
                 <div class="comp-header">
                     <i class="fas fa-arrows-left-right"></i>
@@ -1075,7 +1045,6 @@
                 <div id="comparisonContent"></div>
             </div>
 
-            <!-- Telemetry -->
             <div id="liveTelemetryPanel" style="display: none;" class="telemetry-card">
                 <div class="telemetry-title"><span><i class="fas fa-microchip"></i> AIS TELEMETRY</span><span class="status-badge" id="navStatusBadge">Underway</span></div>
                 <div class="telemetry-grid">
@@ -1097,7 +1066,6 @@
                 </div>
             </div>
 
-            <!-- Aksi -->
             <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE</button>
             <button class="btn-outline" id="animateBtn"><i class="fas fa-play"></i> ANIMASI KAPAL</button>
             <button class="btn-outline" id="clearAllBtn"><i class="fas fa-trash-alt"></i> RESET</button>
@@ -1105,7 +1073,6 @@
             <div class="status-mini"><i class="fas fa-info-circle"></i> <span id="status">Memulai sistem...</span></div>
             <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
 
-            <!-- Response Panel -->
             <div class="response-panel" id="responsePanel">
                 <div class="response-header"><i class="fas fa-robot"></i> AI Response</div>
                 <div class="response-body" id="responseBody">Siap membantu navigasi Anda.</div>
@@ -1119,7 +1086,7 @@
     </script>
     <script>
         const MAPTILER_KEY = 'mP5EMYL63473c6VT5cg6';
-        const map = L.map('map', { zoomControl: false }).setView([-2.5, 118], 5);
+        const map = L.map('map', { zoomControl: false }).setView([-7.06, 112.68], 12);
         L.tileLayer(`https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, {
             maxZoom: 20,
             tileSize: 512,
@@ -1128,9 +1095,47 @@
         }).addTo(map);
 
         // ============================================================
+        // DATA SEGMEN - Sesuai permintaan
+        // ============================================================
+        const SEGMEN_DATA = {
+            "segmen": [
+                {
+                    "name": "Segmen 1",
+                    "color": "#D8A0D8", // UNGU MUDA
+                    "polygon": [
+                        [-7.044334748242213, 112.71560668945314],
+                        [-7.015030940321513, 112.65243530273439],
+                        [-6.857576779654497, 112.71629333496095],
+                        [-6.888253787244398, 112.7904510498047]
+                    ]
+                },
+                {
+                    "name": "Segmen 2",
+                    "color": "#8B008B", // UNGU TUA
+                    "polygon": [
+                        [-7.01571244520281, 112.6527786254883],
+                        [-7.094419523108713, 112.62943267822267],
+                        [-7.113157326014404, 112.68917083740236],
+                        [-7.045697671040922, 112.71457672119142]
+                    ]
+                },
+                {
+                    "name": "Segmen 3",
+                    "color": "#FF0000", // MERAH
+                    "polygon": [
+                        [-7.094078828717475, 112.62874603271486],
+                        [-7.155059096882944, 112.6256561279297],
+                        [-7.158806222674093, 112.68848419189455],
+                        [-7.11452004551183, 112.68848419189455]
+                    ]
+                }
+            ]
+        };
+
+        // ============================================================
         // KONSTANTA KEDALAMAN
         // ============================================================
-        const DEPTH_NOT_FOUND = 10000; // Nilai default untuk area tanpa data kedalaman
+        const DEPTH_NOT_FOUND = 10000;
 
         let islands = [],
             waypoints = [],
@@ -1157,32 +1162,23 @@
         let lastRoutePathIds = [];
         let lastRouteCoords = [];
 
-        // Depth zones data
         let depthZones = [];
         let depthPolygons = [];
         let currentShipLength = 0;
         let currentShipDraft = 0;
 
-        // ===== TRAJECTORY DATA =====
         let trajectoryVessels = [];
         let selectedTrajectoryVessel = null;
         let trajectoryRouteLine = null;
         let comparisonLines = [];
         let trajectoryDepthMarkers = [];
 
+        // Line objects untuk 3 segmen
+        let segmentLines = [];
+
         const WP_CONNECT_RADIUS = 3.0,
             WP_K_NEAR = 9,
             MAX_ITER = 250000;
-
-        // Warna segmen sesuai permintaan
-        // Segmen 1: Ungu Muda (#D8A0D8)
-        // Segmen 2: Ungu Tua (#8B008B)
-        // Segmen 3: Merah (#FF0000)
-        const SEGMENT_COLORS = {
-            seg1: '#D8A0D8', // Ungu Muda
-            seg2: '#8B008B', // Ungu Tua
-            seg3: '#FF0000'  // Merah
-        };
 
         function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 
@@ -1221,9 +1217,6 @@
             return polygon;
         }
 
-        // ============================================================
-        // FUNGSI KEDALAMAN - Menggunakan DEPTH_NOT_FOUND = 10000
-        // ============================================================
         function getDepthAt(lat, lng) {
             if (!depthZones.length) return DEPTH_NOT_FOUND;
             for (const zone of depthZones) {
@@ -1235,9 +1228,6 @@
             return DEPTH_NOT_FOUND;
         }
 
-        // ============================================================
-        // MODUL UKC
-        // ============================================================
         let ukcInputs = {
             shipName: '',
             length: 0,
@@ -1250,13 +1240,11 @@
             waterDepth: 0,
             environment: 'Port Approach'
         };
-
         let lastUkcResult = null;
 
         function getDepthFromData(lat, lng) {
             const depth = getDepthAt(lat, lng);
             if (depth !== DEPTH_NOT_FOUND) return depth;
-            
             if (!waypoints.length) return DEPTH_NOT_FOUND;
             let nearest = null;
             let minDist = Infinity;
@@ -1278,19 +1266,15 @@
                 alert('⚠️ Tidak ada posisi START! Cari kapal atau tentukan START terlebih dahulu.');
                 return;
             }
-            
             const lat = start[0];
             const lng = start[1];
             const depth = getDepthFromData(lat, lng);
-            
             if (depth === DEPTH_NOT_FOUND) {
                 alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi ini. Pastikan data kedalaman.json dan waypoint telah dimuat.');
                 return;
             }
-            
             ukcInputs.waterDepth = depth;
             document.getElementById('ukcWaterDepthDisplay')?.remove();
-            
             const resultDiv = document.getElementById('ukcResult');
             resultDiv.style.display = 'block';
             resultDiv.className = 'ukc-result';
@@ -1308,7 +1292,6 @@
                     <i class="fas fa-arrow-right"></i> Tekan "Hitung UKC" untuk analisis lengkap.
                 </div>
             `;
-            
             setStatus(`✅ Kedalaman ${depth.toFixed(1)}m diambil dari data`, "#27ae60");
             setInfo(`Kedalaman: ${depth.toFixed(1)}m (dari ${depthZones.length > 0 ? 'kedalaman.json' : 'waypoint'})`);
         }
@@ -1322,33 +1305,25 @@
                     return { error: `Nilai ${field} tidak boleh negatif` };
                 }
             }
-
             const { staticDraft, trimDraft, listingDraft, squat, waveMotion, waterDepth, environment } = inputs;
-
             const maxDraftFromTrimListing = Math.max(trimDraft, listingDraft);
             const dynamicDraft = maxDraftFromTrimListing + squat + waveMotion;
-
             let ukc = 0;
             if (environment === 'Port Approach') {
                 ukc = Math.max(1.0, 0.10 * staticDraft);
             } else {
                 ukc = 0.20 * dynamicDraft;
             }
-
             const requiredDepth = dynamicDraft + ukc;
-
             let status = 'NOT ACCEPTABLE';
             if (waterDepth >= requiredDepth) {
                 status = 'ACCEPTABLE';
             }
-
             const safetyMargin = waterDepth - requiredDepth;
-
             let warning = '';
             if (dynamicDraft > waterDepth) {
                 warning = '⚠️ Dynamic Draft melebihi kedalaman air!';
             }
-
             return {
                 shipName: inputs.shipName || 'Unknown',
                 dynamicDraft: Math.round(dynamicDraft * 100) / 100,
@@ -1366,7 +1341,7 @@
         }
 
         function isUkcSafe(depthMeters) {
-            if (depthMeters >= DEPTH_NOT_FOUND) return true; // Area dalam dianggap aman
+            if (depthMeters >= DEPTH_NOT_FOUND) return true;
             if (!lastUkcResult || lastUkcResult.status === 'NOT ACCEPTABLE') {
                 const dynamicDraft = Math.max(ukcInputs.trimDraft, ukcInputs.listingDraft) + ukcInputs.squat + ukcInputs
                     .waveMotion;
@@ -1386,9 +1361,6 @@
             }
             return { depth, safe, ukcInfo };
         }
-        // ============================================================
-        // END UKC MODUL
-        // ============================================================
 
         function canSee(a, b, samples = 22) { for (let i = 1; i < samples; i++) { const t = i / samples, lat = a[0] + (b[0] -
                     a[0]) * t, lng = a[1] + (b[1] - a[1]) * t; if (isBlocked(lat, lng)) return false; } return true; }
@@ -1423,6 +1395,14 @@
         function clearTrajectoryDepthMarkers() {
             trajectoryDepthMarkers.forEach(m => map.removeLayer(m));
             trajectoryDepthMarkers = [];
+        }
+
+        function clearSegmentLines() {
+            segmentLines.forEach(l => map.removeLayer(l));
+            segmentLines = [];
+            // Hapus legend
+            const oldLegend = document.querySelector('.segment-legend');
+            if (oldLegend) oldLegend.remove();
         }
 
         function smoothCurve(coords, steps = 20) {
@@ -1475,12 +1455,11 @@
         }
 
         // ============================================================
-        // DRAW ROUTE DENGAN 3 SEGMEN: 
-        // Segmen 1: UNGU MUDA (#D8A0D8)
-        // Segmen 2: UNGU TUA (#8B008B)  
-        // Segmen 3: MERAH (#FF0000)
+        // GENERATE RUTE 3 SEGMEN - WARNA: SEG1 UNGU MUDA, SEG2 UNGU TUA, SEG3 MERAH
         // ============================================================
-        function drawRouteWithThreeSegments(coords) {
+        function generateSegmenRoute() {
+            // Hapus rute sebelumnya
+            clearSegmentLines();
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -1493,118 +1472,145 @@
                 }
                 routeLine = null;
             }
+            clearWaypointMarkers();
+            stopAnimation();
+            if (shipMarker) map.removeLayer(shipMarker);
 
-            if (!coords || coords.length < 2) return;
-
-            currentRouteCoords = coords;
-            lastRouteCoords = coords;
-            const smoothed = smoothCurve(coords, 25);
-            
-            if (smoothed.length < 3) {
-                routeLine = L.polyline(smoothed, { 
-                    color: SEGMENT_COLORS.seg2, 
-                    weight: 5, 
-                    opacity: 0.9 
-                }).addTo(map);
-                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            const segmen = SEGMEN_DATA.segmen;
+            if (!segmen || segmen.length !== 3) {
+                alert('Data segmen tidak valid!');
                 return;
             }
 
-            const totalPoints = smoothed.length;
-            const third1 = Math.floor(totalPoints * 0.33);
-            const third2 = Math.floor(totalPoints * 0.66);
-            
-            const seg1End = Math.max(2, third1);
-            const seg2End = Math.max(seg1End + 1, third2);
-            
-            const seg1 = smoothed.slice(0, seg1End + 1);
-            const seg2 = smoothed.slice(seg1End, seg2End + 1);
-            const seg3 = smoothed.slice(seg2End);
+            // Kumpulkan semua koordinat dari ketiga segmen
+            let allCoords = [];
+            let totalKm = 0;
+            let totalWaypoints = 0;
 
-            const lines = [];
-            
-            // Segmen 1: Ungu Muda
-            if (seg1.length >= 2) {
-                const line1 = L.polyline(seg1, {
-                    color: SEGMENT_COLORS.seg1, // #D8A0D8
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line1);
-            }
-            
-            // Segmen 2: Ungu Tua
-            if (seg2.length >= 2) {
-                const line2 = L.polyline(seg2, {
-                    color: SEGMENT_COLORS.seg2, // #8B008B
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line2);
-            }
-            
-            // Segmen 3: Merah
-            if (seg3.length >= 2) {
-                const line3 = L.polyline(seg3, {
-                    color: SEGMENT_COLORS.seg3, // #FF0000
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line3);
-            }
-
-            if (lines.length > 0) {
-                routeLine = {
-                    _layers: lines,
-                    getBounds: function() {
-                        const allCoords = [];
-                        for (const line of lines) {
-                            allCoords.push(...line.getLatLngs());
-                        }
-                        return L.latLngBounds(allCoords);
-                    }
-                };
-                routeLine.remove = function() {
-                    for (const line of lines) {
-                        map.removeLayer(line);
-                    }
-                };
+            // Untuk setiap segmen, gambar poligon dengan warna yang ditentukan
+            for (let i = 0; i < segmen.length; i++) {
+                const s = segmen[i];
+                const polygonCoords = s.polygon;
                 
-                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                // Pastikan polygon tertutup
+                let closedPolygon = [...polygonCoords];
+                const first = polygonCoords[0];
+                const last = polygonCoords[polygonCoords.length - 1];
+                if (first[0] !== last[0] || first[1] !== last[1]) {
+                    closedPolygon = [...polygonCoords, first];
+                }
+
+                // Buat polyline dengan warna sesuai segmen
+                const line = L.polyline(closedPolygon, {
+                    color: s.color,
+                    weight: 6,
+                    opacity: 0.9,
+                    smoothFactor: 1
+                }).addTo(map);
+                segmentLines.push(line);
+
+                // Simpan koordinat untuk animasi dan perhitungan jarak
+                for (let j = 0; j < polygonCoords.length; j++) {
+                    allCoords.push(polygonCoords[j]);
+                }
+                totalWaypoints += polygonCoords.length;
+
+                // Hitung jarak
+                for (let j = 1; j < polygonCoords.length; j++) {
+                    totalKm += distKm(polygonCoords[j-1], polygonCoords[j]);
+                }
+
+                // Tambahkan marker di setiap titik polygon
+                for (let j = 0; j < polygonCoords.length; j++) {
+                    const p = polygonCoords[j];
+                    const marker = L.circleMarker([p[0], p[1]], {
+                        radius: 5,
+                        fillColor: s.color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(map);
+                    segmentLines.push(marker);
+                    marker.bindTooltip(
+                        `${s.name} - Titik ${j+1}<br>${p[0].toFixed(5)}°, ${p[1].toFixed(5)}°`, {
+                            permanent: false,
+                            direction: 'top',
+                            offset: [0, -8],
+                            className: 'waypoint-marker-label'
+                        });
+                }
             }
 
-            addRouteLegend();
+            // Set currentRouteCoords untuk animasi
+            currentRouteCoords = allCoords;
+
+            // Fit bounds ke semua segmen
+            try {
+                const bounds = L.latLngBounds(allCoords);
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            } catch (e) {}
+
+            // Tampilkan legend
+            addSegmentLegend();
+
+            // Tampilkan response
+            const responseBody = document.getElementById('responseBody');
+            const responsePanel = document.getElementById('responsePanel');
+            responseBody.innerHTML = `
+                <div style="font-weight:700; color:#8e44ad; margin-bottom:8px;">🗺️ RUTE 3 SEGMEN</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:0.7rem;">
+                    <div><span style="color:#5a7e92;">Total Titik</span></div>
+                    <div style="font-weight:600; text-align:right;">${totalWaypoints}</div>
+                    <div><span style="color:#5a7e92;">Total Jarak</span></div>
+                    <div style="font-weight:600; text-align:right;">${totalKm.toFixed(2)} km (${(totalKm/1.852).toFixed(1)} nm)</div>
+                    <div style="grid-column: span 2; border-top:1px solid #d4e2ec; padding-top:6px; margin-top:4px;">
+                        <span style="color:#5a7e92;">Segmen:</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:20px; height:3px; background:#D8A0D8; border-radius:2px;"></span>
+                        <span style="font-size:0.65rem;">Segmen 1 (Ungu Muda)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:20px; height:3px; background:#8B008B; border-radius:2px;"></span>
+                        <span style="font-size:0.65rem;">Segmen 2 (Ungu Tua)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:20px; height:3px; background:#FF0000; border-radius:2px;"></span>
+                        <span style="font-size:0.65rem;">Segmen 3 (Merah)</span>
+                    </div>
+                </div>
+            `;
+            responsePanel.style.display = 'block';
+
+            setStatus(`✅ Rute 3 segmen: ${totalKm.toFixed(1)} km, ${totalWaypoints} titik`, "#8e44ad");
+            setInfo(`Rute 3 segmen: Segmen 1 (Ungu Muda), Segmen 2 (Ungu Tua), Segmen 3 (Merah)`);
         }
 
-        function addRouteLegend() {
-            const oldLegend = document.querySelector('.route-legend');
+        function addSegmentLegend() {
+            const oldLegend = document.querySelector('.segment-legend');
             if (oldLegend) oldLegend.remove();
 
             const legend = document.createElement('div');
-            legend.className = 'route-legend';
+            legend.className = 'segment-legend';
             legend.innerHTML = `
-                <div class="legend-title">🚢 Rute</div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg1};"></span>
-                    <span>Segmen 1 (Awal)</span>
+                <div style="font-weight:700; color:#1a3e4f; margin-bottom:6px;">🚢 RUTE 3 SEGMEN</div>
+                <div class="seg-item">
+                    <span class="seg-color" style="background:#D8A0D8;"></span>
+                    <span style="color:#333; font-size:11px;">Segmen 1 (Ungu Muda)</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg2};"></span>
-                    <span>Segmen 2 (Tengah)</span>
+                <div class="seg-item">
+                    <span class="seg-color" style="background:#8B008B;"></span>
+                    <span style="color:#333; font-size:11px;">Segmen 2 (Ungu Tua)</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg3};"></span>
-                    <span>Segmen 3 (Akhir)</span>
+                <div class="seg-item">
+                    <span class="seg-color" style="background:#FF0000;"></span>
+                    <span style="color:#333; font-size:11px;">Segmen 3 (Merah)</span>
                 </div>
             `;
             document.getElementById('map').appendChild(legend);
-        }
-
-        function drawRouteAsCurve(coords) {
-            drawRouteWithThreeSegments(coords);
         }
 
         // ============================================================
@@ -1617,16 +1623,12 @@
                 alert('⚠️ Pilih kapal trajectory terlebih dahulu!');
                 return;
             }
-
             const v = trajectoryVessels[idx];
             if (!v || !v.route || v.route.length < 2) {
                 alert('⚠️ Kapal tidak memiliki rute yang valid!');
                 return;
             }
-
-            // Hapus marker kedalaman sebelumnya
             clearTrajectoryDepthMarkers();
-
             const routeCoords = v.route.map(p => [p[0], p[1]]);
             let depthSummary = [];
             let unsafeCount = 0;
@@ -1647,16 +1649,15 @@
                     unsafeCount++;
                 }
 
-                // Warna marker berdasarkan kedalaman
-                let color = '#2ecc71'; // Hijau - aman
+                let color = '#2ecc71';
                 let depthLabel = depth >= DEPTH_NOT_FOUND ? '>10000m' : `${depth.toFixed(1)}m`;
                 
                 if (depth >= DEPTH_NOT_FOUND) {
-                    color = '#3498db'; // Biru - sangat dalam
+                    color = '#3498db';
                 } else if (!safe) {
-                    color = '#e74c3c'; // Merah - tidak aman
+                    color = '#e74c3c';
                 } else if (depth < 20) {
-                    color = '#f39c12'; // Kuning - dangkal tapi aman
+                    color = '#f39c12';
                 }
 
                 const marker = L.circleMarker([p[0], p[1]], {
@@ -1692,7 +1693,6 @@
 
             const avgDepth = validDepthCount > 0 ? totalDepth / validDepthCount : 0;
 
-            // Tampilkan ringkasan di response panel
             const responseBody = document.getElementById('responseBody');
             const responsePanel = document.getElementById('responsePanel');
             
@@ -1733,58 +1733,188 @@
             setStatus(`📊 Trajectory: ${routeCoords.length} waypoint, ${unsafeCount} tidak aman`, unsafeCount > 0 ? '#e67e22' : '#27ae60');
             setInfo(`Kedalaman trajectory dianalisis: ${unsafeCount} waypoint tidak aman`);
 
-            // Fit bounds ke trajectory route
             if (trajectoryRouteLine) {
                 map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
             }
         }
 
         // ============================================================
-        // COMPARISON FUNCTION - ENHANCED WITH WAYPOINT-TO-WAYPOINT DISTANCE
+        // DRAW ROUTE DENGAN 3 WARNA (Fungsi lama, tetap dipertahankan)
+        // ============================================================
+        function drawRouteWithThreeColors(coords) {
+            if (routeLine) {
+                if (typeof routeLine.remove === 'function') {
+                    routeLine.remove();
+                } else if (routeLine._layers) {
+                    for (const line of routeLine._layers) {
+                        map.removeLayer(line);
+                    }
+                } else {
+                    map.removeLayer(routeLine);
+                }
+                routeLine = null;
+            }
+
+            if (!coords || coords.length < 2) return;
+
+            currentRouteCoords = coords;
+            lastRouteCoords = coords;
+            const smoothed = smoothCurve(coords, 25);
+            
+            if (smoothed.length < 3) {
+                routeLine = L.polyline(smoothed, { 
+                    color: '#8B008B', 
+                    weight: 5, 
+                    opacity: 0.9 
+                }).addTo(map);
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                return;
+            }
+
+            const totalPoints = smoothed.length;
+            const third1 = Math.floor(totalPoints * 0.33);
+            const third2 = Math.floor(totalPoints * 0.66);
+            
+            const seg1End = Math.max(2, third1);
+            const seg2End = Math.max(seg1End + 1, third2);
+            
+            const seg1 = smoothed.slice(0, seg1End + 1);
+            const seg2 = smoothed.slice(seg1End, seg2End + 1);
+            const seg3 = smoothed.slice(seg2End);
+
+            const lines = [];
+            
+            if (seg1.length >= 2) {
+                const line1 = L.polyline(seg1, {
+                    color: '#FF0000',
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line1);
+            }
+            
+            if (seg2.length >= 2) {
+                const line2 = L.polyline(seg2, {
+                    color: '#8B008B',
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line2);
+            }
+            
+            if (seg3.length >= 2) {
+                const line3 = L.polyline(seg3, {
+                    color: '#D8A0D8',
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line3);
+            }
+
+            if (lines.length > 0) {
+                routeLine = {
+                    _layers: lines,
+                    getBounds: function() {
+                        const allCoords = [];
+                        for (const line of lines) {
+                            allCoords.push(...line.getLatLngs());
+                        }
+                        return L.latLngBounds(allCoords);
+                    }
+                };
+                routeLine.remove = function() {
+                    for (const line of lines) {
+                        map.removeLayer(line);
+                    }
+                };
+                
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            }
+
+            addRouteLegend();
+        }
+
+        function addRouteLegend() {
+            const oldLegend = document.querySelector('.route-legend');
+            if (oldLegend) oldLegend.remove();
+
+            const legend = document.createElement('div');
+            legend.className = 'route-legend';
+            legend.style.cssText = `
+                position: absolute;
+                bottom: 30px;
+                right: 30px;
+                background: rgba(255,255,255,0.95);
+                padding: 12px 16px;
+                border-radius: 12px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+                font-size: 12px;
+                font-family: 'Inter', sans-serif;
+                z-index: 1000;
+                border: 1px solid #e2edf5;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                pointer-events: none;
+            `;
+            legend.innerHTML = `
+                <div style="font-weight:600; color:#1a3e4f; margin-bottom:4px;">🚢 Rute</div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:24px; height:4px; background:#FF0000; border-radius:2px;"></span>
+                    <span style="color:#333;">Awal (Merah)</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:24px; height:4px; background:#8B008B; border-radius:2px;"></span>
+                    <span style="color:#333;">Tengah (Ungu)</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-block; width:24px; height:4px; background:#D8A0D8; border-radius:2px;"></span>
+                    <span style="color:#333;">Akhir (Ungu Muda)</span>
+                </div>
+            `;
+            document.getElementById('map').appendChild(legend);
+        }
+
+        function drawRouteAsCurve(coords) {
+            drawRouteWithThreeColors(coords);
+        }
+
+        // ============================================================
+        // COMPARISON FUNCTION
         // ============================================================
         function compareRouteWithTrajectory(pathIds) {
             if (!selectedTrajectoryVessel || !selectedTrajectoryVessel.route) {
                 alert('⚠️ Pilih kapal trajectory terlebih dahulu!');
                 return;
             }
-
             const trajRoute = selectedTrajectoryVessel.route;
             if (trajRoute.length < 2) {
                 alert('⚠️ Trajectory tidak memiliki rute yang valid!');
                 return;
             }
-
-            // Hapus comparison lines sebelumnya
             clearComparisonLines();
 
-            // Ambil koordinat rute yang digenerate
             const routeCoords = [];
             for (let id of pathIds) {
                 if (typeof id === 'number') {
                     routeCoords.push([waypoints[id].lat, waypoints[id].lng]);
                 }
             }
-
             if (routeCoords.length < 2) {
                 alert('⚠️ Rute tidak memiliki cukup waypoint!');
                 return;
             }
-
-            // Ambil koordinat trajectory
             const trajCoords = trajRoute.map(p => [p[0], p[1]]);
 
-            // ============================================================
-            // PERBANDINGAN JARAK TERDEKAT ANTAR WAYPOINT
-            // Untuk setiap waypoint di rute, cari waypoint trajectory terdekat
-            // ============================================================
             const wpComparisons = [];
-            
             for (let i = 0; i < routeCoords.length; i++) {
                 const wp = routeCoords[i];
                 let minDist = Infinity;
                 let closestTrajIdx = -1;
                 let closestTrajCoord = null;
-                
                 for (let j = 0; j < trajCoords.length; j++) {
                     const d = distKm(wp, trajCoords[j]);
                     if (d < minDist) {
@@ -1793,7 +1923,6 @@
                         closestTrajCoord = trajCoords[j];
                     }
                 }
-                
                 wpComparisons.push({
                     routeIdx: i,
                     routeCoord: wp,
@@ -1803,31 +1932,25 @@
                 });
             }
 
-            // Hitung statistik
             const distances = wpComparisons.map(wp => wp.distance);
             const avgDist = distances.reduce((a, b) => a + b, 0) / distances.length;
             const minDist = Math.min(...distances);
             const maxDist = Math.max(...distances);
             
-            // Hitung total jarak rute dan trajectory
             let routeTotal = 0;
             for (let i = 1; i < routeCoords.length; i++) {
                 routeTotal += distKm(routeCoords[i-1], routeCoords[i]);
             }
-            
             let trajTotal = 0;
             for (let i = 1; i < trajCoords.length; i++) {
                 trajTotal += distKm(trajCoords[i-1], trajCoords[i]);
             }
 
-            // Tampilkan hasil comparison
             const panel = document.getElementById('comparisonPanel');
             const content = document.getElementById('comparisonContent');
             panel.style.display = 'block';
 
             let html = '';
-            
-            // Header tabel
             html += `
                 <div style="display:grid; grid-template-columns: 60px 1fr 1fr 80px 100px; gap:4px; font-size:0.6rem; font-weight:700; color:#5a7e92; padding:4px 8px; border-bottom:2px solid #d4e2ec; margin-bottom:6px;">
                     <div>#</div>
@@ -1853,7 +1976,6 @@
                     </div>
                 `;
 
-                // Gambar garis comparison di peta (dari waypoint rute ke trajectory terdekat)
                 const line = L.polyline([
                     c.routeCoord,
                     c.trajCoord
@@ -1866,7 +1988,6 @@
                 }).addTo(map);
                 comparisonLines.push(line);
 
-                // Tambahkan marker kecil di trajectory point terdekat
                 const marker = L.circleMarker(c.trajCoord, {
                     radius: 4,
                     fillColor: '#8e44ad',
@@ -1883,7 +2004,6 @@
                 comparisonLines.push(marker);
             }
 
-            // Summary
             html += `
                 <div class="comparison-summary">
                     <div class="item"><span class="label">Total Waypoint Rute</span><span class="value">${routeCoords.length}</span></div>
@@ -1911,7 +2031,6 @@
             setStatus(`📊 Perbandingan: ${wpComparisons.length} waypoint, rata-rata jarak terdekat ${avgDist.toFixed(3)} km`, "#8e44ad");
             setInfo(`Perbandingan waypoint-to-waypoint: ${wpComparisons.length} titik dianalisis`);
 
-            // Fit bounds ke semua comparison lines
             if (comparisonLines.length > 0) {
                 const allCoords = [];
                 for (const item of comparisonLines) {
@@ -1934,9 +2053,7 @@
                         if (bounds.isValid()) {
                             map.fitBounds(bounds, { padding: [80, 80] });
                         }
-                    } catch (e) {
-                        // Ignore
-                    }
+                    } catch (e) {}
                 }
             }
         }
@@ -1949,17 +2066,14 @@
                 const res = await fetch('Ship_Trajectory.json');
                 const data = await res.json();
                 trajectoryVessels = data.vessels || [];
-                
                 const select = document.getElementById('vesselSelect');
                 select.innerHTML = '<option value="">-- Pilih Kapal --</option>';
-                
                 trajectoryVessels.forEach((v, idx) => {
                     const opt = document.createElement('option');
                     opt.value = idx;
                     opt.textContent = `${v.name || v.mmsi} (${v.mmsi})`;
                     select.appendChild(opt);
                 });
-                
                 setStatus(`📊 ${trajectoryVessels.length} kapal trajectory dimuat`, "#8e44ad");
                 setInfo(`Ship_Trajectory.json dimuat: ${trajectoryVessels.length} kapal`);
             } catch (e) {
@@ -1982,7 +2096,6 @@
                 selectedTrajectoryVessel = null;
                 return;
             }
-            
             document.getElementById('infoMmsi').textContent = v.mmsi || '-';
             document.getElementById('infoName').textContent = v.name || '-';
             document.getElementById('infoType').textContent = v.type || '-';
@@ -1990,7 +2103,6 @@
             document.getElementById('infoDraft').textContent = v.draft ? `${v.draft}m` : '-';
             document.getElementById('infoCargo').textContent = v.cargo || '-';
             document.getElementById('infoWaypoints').textContent = (v.route && v.route.length) ? `${v.route.length} titik` : '-';
-            
             selectedTrajectoryVessel = v;
         }
 
@@ -2001,17 +2113,12 @@
                 alert('Pilih kapal terlebih dahulu!');
                 return;
             }
-            
             const v = trajectoryVessels[idx];
             if (!v || !v.route || v.route.length < 2) {
                 alert('Kapal tidak memiliki rute yang valid!');
                 return;
             }
-
-            // Set MMSI
             document.getElementById('shipMMSI').value = v.mmsi || '';
-            
-            // Set Length & Draft
             if (v.length) {
                 document.getElementById('shipLength').value = v.length;
                 currentShipLength = v.length;
@@ -2020,14 +2127,11 @@
                 document.getElementById('shipDraft').value = v.draft;
                 currentShipDraft = v.draft;
             }
-            
-            // Set START dari titik pertama rute
             const firstPoint = v.route[0];
             if (firstPoint && firstPoint.length === 2) {
                 start = [firstPoint[0], firstPoint[1]];
                 document.getElementById('startLat').value = firstPoint[0].toFixed(6);
                 document.getElementById('startLng').value = firstPoint[1].toFixed(6);
-                
                 if (startMarker) map.removeLayer(startMarker);
                 startMarker = L.marker([firstPoint[0], firstPoint[1]], { 
                     icon: L.divIcon({ 
@@ -2036,11 +2140,8 @@
                         iconAnchor: [14, 28] 
                     }) 
                 }).addTo(map).bindPopup(`START: ${v.name || v.mmsi}`).openPopup();
-                
                 map.setView([firstPoint[0], firstPoint[1]], 12);
             }
-            
-            // Set END dari titik terakhir rute
             const lastPoint = v.route[v.route.length - 1];
             if (lastPoint && lastPoint.length === 2) {
                 end = [lastPoint[0], lastPoint[1]];
@@ -2053,14 +2154,11 @@
                     }) 
                 }).addTo(map).bindPopup(`TUJUAN: ${v.name || v.mmsi}`).openPopup();
             }
-            
-            // Isi UKC panel dengan data kapal
             if (v.name) document.getElementById('ukcShipName').value = v.name;
             if (v.length) document.getElementById('ukcLength').value = v.length;
             if (v.draft) document.getElementById('ukcStaticDraft').value = v.draft;
             if (v.width) document.getElementById('ukcBreadth').value = v.width;
             
-            // Simpan telemetry dummy
             activeShipTelemetry = {
                 mmsi: v.mmsi,
                 lat: firstPoint[0],
@@ -2079,8 +2177,6 @@
             
             setStatus(`✅ Kapal ${v.name || v.mmsi} dimuat dari trajectory`, "#8e44ad");
             setInfo(`Trajectory: ${v.route.length} waypoints, ${v.type || 'Unknown type'}`);
-            
-            // Tampilkan rute trajectory di peta
             showTrajectoryRoute();
         }
 
@@ -2091,23 +2187,16 @@
                 alert('Pilih kapal terlebih dahulu!');
                 return;
             }
-            
             const v = trajectoryVessels[idx];
             if (!v || !v.route || v.route.length < 2) {
                 alert('Kapal tidak memiliki rute yang valid!');
                 return;
             }
-            
-            // Hapus trajectory route sebelumnya
             if (trajectoryRouteLine) {
                 map.removeLayer(trajectoryRouteLine);
                 trajectoryRouteLine = null;
             }
-            
-            // Hapus marker kedalaman sebelumnya
             clearTrajectoryDepthMarkers();
-            
-            // Gambar rute trajectory dengan warna berbeda (biru muda)
             const routeCoords = v.route.map(p => [p[0], p[1]]);
             trajectoryRouteLine = L.polyline(routeCoords, {
                 color: '#3498db',
@@ -2116,8 +2205,6 @@
                 dashArray: '8, 6',
                 smoothFactor: 1
             }).addTo(map);
-            
-            // Tambahkan marker untuk setiap waypoint trajectory (kecil)
             for (let i = 0; i < v.route.length; i++) {
                 const p = v.route[i];
                 if (i % 10 === 0 || i === 0 || i === v.route.length - 1) {
@@ -2137,17 +2224,13 @@
                     });
                 }
             }
-            
-            // Fit bounds ke route
             map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
-            
             setInfo(`Trajectory: ${v.name || v.mmsi} (${v.route.length} waypoints) ditampilkan dengan garis biru putus-putus`);
         }
 
         // ============================================================
-        // END TRAJECTORY FUNCTIONS
+        // LOAD MODE
         // ============================================================
-
         async function loadMode(modeName) {
             currentMode = modeName;
             setStatus(`Memuat ${modeName}...`, "#f39c12");
@@ -2160,6 +2243,7 @@
             clearWaypointMarkers();
             clearComparisonLines();
             clearTrajectoryDepthMarkers();
+            clearSegmentLines();
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -2182,32 +2266,29 @@
 
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
+            const oldSegLegend = document.querySelector('.segment-legend');
+            if (oldSegLegend) oldSegLegend.remove();
 
             try {
                 const depthRes = await fetch('kedalaman.json');
                 const depthData = await depthRes.json();
                 depthZones = depthData.depthZones || [];
-
                 for (const zone of depthZones) {
                     if (!zone.polygon || zone.polygon.length < 3) continue;
-
                     const convertedPolygon = convertPolygonToLatLng(zone.polygon);
                     zone.latLngPolygon = convertedPolygon;
-
                     let closedPolygon = [...convertedPolygon];
                     const first = convertedPolygon[0];
                     const last = convertedPolygon[convertedPolygon.length - 1];
                     if (first[0] !== last[0] || first[1] !== last[1]) {
                         closedPolygon = [...convertedPolygon, first];
                     }
-
                     let fillColor, borderColor;
                     if (zone.depth < 10) { fillColor = "#ffcccc";
                         borderColor = "#cc0000"; } else if (zone.depth < 20) { fillColor = "#ffaa66";
                         borderColor = "#cc6600"; } else if (zone.depth < 50) { fillColor = "#88ccff";
                         borderColor = "#0066cc"; } else { fillColor = "#66aaff";
                         borderColor = "#004499"; }
-
                     depthPolygons.push(L.polygon(closedPolygon, {
                         color: borderColor,
                         weight: 1.5,
@@ -2216,7 +2297,6 @@
                         interactive: false
                     }).addTo(map).bindTooltip(`🌊 ${zone.name}<br>Kedalaman: ${zone.depth}m`, { sticky: true }));
                 }
-
                 if (depthZones.length > 0) {
                     setStatus(`🌊 ${depthZones.length} zona kedalaman dimuat`, "#2c7a4d");
                 } else {
@@ -2260,8 +2340,6 @@
                                 'Pelabuhan', lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }));
                         setStatus(`⚓ ${ports.length} pelabuhan`, "#1f7e9e");
                         setupPortSearch(); } } catch (e) { console.log("pelabuhan.json opsional"); }
-                
-                // Load Trajectory data
                 await loadTrajectoryData();
             } else { islands = [];
                 setStatus(`🔹 BIGRU: tanpa pulau`, "#2f7f5f");
@@ -2322,19 +2400,14 @@
                     came.set(nb, cur); const h = dist(coordOf(nb), coordOf(dstId));
                     heap.push([ng + h, nb]); } } } return null; }
 
-        // ============================================================
-        // AI-LIKE RESPONSE GENERATOR
-        // ============================================================
         function generateAIStyleResponse(pathIds, rawCoords, totalKm, unsafeWaypointsCount, startDepth, endDepth) {
             let lines = [];
             const wpCount = pathIds.filter(id => typeof id === 'number').length;
             const nm = (totalKm / 1.852).toFixed(1);
-
             lines.push(`🧭 ANALISIS RUTE MARITIM`);
             lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
             lines.push(`📏 Total jarak : ${totalKm.toFixed(1)} km (${nm} nm)`);
             lines.push(`📍 Waypoint    : ${wpCount} titik`);
-
             if (unsafeWaypointsCount > 0) {
                 lines.push(`⚠️  <span class="danger">${unsafeWaypointsCount} waypoint berbahaya (terlalu dangkal)</span>`);
                 lines.push(`💡 <span class="warning">SARAN: Arahkan kapal ke area yang lebih dalam!</span>`);
@@ -2356,14 +2429,12 @@
             } else {
                 lines.push(`✅ <span class="safe">Semua waypoint aman berdasarkan UKC</span>`);
             }
-
             if (startDepth < DEPTH_NOT_FOUND && !isUkcSafe(startDepth)) {
                 lines.push(`⚠️ <span class="danger">START berada di kedalaman ${startDepth.toFixed(1)}m (tidak aman)</span>`);
             }
             if (endDepth < DEPTH_NOT_FOUND && !isUkcSafe(endDepth)) {
                 lines.push(`⚠️ <span class="danger">TUJUAN berada di kedalaman ${endDepth.toFixed(1)}m (tidak aman)</span>`);
             }
-
             if (lastUkcResult) {
                 lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
                 lines.push(`📊 UKC REFERENCE:`);
@@ -2372,16 +2443,10 @@
                 lines.push(`   Kedalaman req : ${lastUkcResult.requiredDepth.toFixed(2)}m`);
                 lines.push(`   Status        : ${lastUkcResult.status}`);
             }
-
             lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
             lines.push(`🛳️  <span class="info">Navigasi aman, selalu perbarui data kedalaman.</span>`);
-
             return lines.join('<br>');
         }
-
-        // ============================================================
-        // END AI RESPONSE
-        // ============================================================
 
         async function runRoute() {
             if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih dari Trajectory."); return; }
@@ -2431,19 +2496,17 @@
                 ]; };
             const pathIds = astarWithVirtual('S', 'E', extraEdges, coordOf);
             showProgress(0.85);
-            if (!pathIds || pathIds.length < 2) { if (canSee(start, end, 45)) { drawRouteWithThreeSegments([start, end]);
+            if (!pathIds || pathIds.length < 2) { if (canSee(start, end, 45)) { drawRouteWithThreeColors([start, end]);
                     setStatus(`✅ Jalur Langsung: ${distKm(start,end).toFixed(1)} km`, "#2ecc71");
                     showWaypointMarkersFromPath([]); } else { setStatus("❌ Rute tidak ditemukan", "red"); }
                 showProgress(1);
                 setTimeout(hideProgress, 500);
                 isRouting = false; return; }
             
-            // Simpan pathIds untuk perbandingan
             lastRoutePathIds = pathIds;
-            
             const rawCoords = pathIds.map(id => coordOf(id));
             lastRouteCoords = rawCoords;
-            drawRouteWithThreeSegments(rawCoords);
+            drawRouteWithThreeColors(rawCoords);
             let totalKm = 0;
             let unsafeWaypointsCount = 0;
             let unsafeWaypointDetails = [];
@@ -2469,17 +2532,12 @@
             isRouting = false;
             showWaypointMarkersFromPath(pathIds);
 
-            // ===== GENERATE AI RESPONSE =====
             const responseBody = document.getElementById('responseBody');
             const responsePanel = document.getElementById('responsePanel');
             const aiMessage = generateAIStyleResponse(pathIds, rawCoords, totalKm, unsafeWaypointsCount, startDepth,
             endDepth);
             responseBody.innerHTML = aiMessage;
             responsePanel.style.display = 'block';
-
-            if (unsafeWaypointsCount > 0) {
-                // sudah tampil di response
-            }
         }
 
         function createShipIcon() { const sog = activeShipTelemetry?.sog || 0; const cog = activeShipTelemetry?.cog ||
@@ -2555,6 +2613,7 @@
                     clearWaypointMarkers(); 
                     const oldLegend = document.querySelector('.route-legend');
                     if (oldLegend) oldLegend.remove();
+                    clearSegmentLines();
                 }
                 map.setView([found.lat, found.lon], 12); } else { alert("Koordinat kapal tidak valid"); }
             updateTelemetryUI(activeShipTelemetry);
@@ -2603,6 +2662,7 @@
                 clearWaypointMarkers(); 
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
+                clearSegmentLines();
             } }
 
         function randomDestPort() { if (!ports.length) { alert("Tidak ada data pelabuhan."); return; } const random =
@@ -2631,6 +2691,7 @@
                 clearWaypointMarkers(); 
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
+                clearSegmentLines();
             } }
 
         function clearAll() { if (isRouting) return; 
@@ -2646,14 +2707,12 @@
                 }
                 routeLine = null;
             }
-            // Hapus trajectory route
+            clearSegmentLines();
             if (trajectoryRouteLine) {
                 map.removeLayer(trajectoryRouteLine);
                 trajectoryRouteLine = null;
             }
-            // Hapus comparison lines
             clearComparisonLines();
-            // Hapus trajectory depth markers
             clearTrajectoryDepthMarkers();
             if (startMarker) map.removeLayer(startMarker); 
             if (endMarker) map.removeLayer(endMarker); 
@@ -2692,6 +2751,8 @@
             document.getElementById('responsePanel').style.display = 'none';
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
+            const oldSegLegend = document.querySelector('.segment-legend');
+            if (oldSegLegend) oldSegLegend.remove();
         }
 
         function setPickMode(m) { if (isRouting) return;
@@ -2720,6 +2781,7 @@
                 clearWaypointMarkers(); 
                 const oldLegend = document.querySelector('.route-legend');
                 if (oldLegend) oldLegend.remove();
+                clearSegmentLines();
             } }
 
         function setRouteMode(mode) { routeMode = mode; if (mode === "AUTO") { document.getElementById(
@@ -2744,9 +2806,6 @@
                     .openPopup();
                 setStatus(`🏁 Finish: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "#d97706"); } } }
 
-        // ============================================================
-        // UKC HANDLER
-        // ============================================================
         function handleUkcCalculation() {
             const shipName = document.getElementById('ukcShipName').value || 'Unknown';
             const length = parseFloat(document.getElementById('ukcLength').value) || 0;
@@ -2851,9 +2910,6 @@
             setStatus("UKC dibersihkan", "#447799");
             setInfo("UKC result cleared.");
         }
-        // ============================================================
-        // END UKC HANDLER
-        // ============================================================
 
         // ============================================================
         // EVENT LISTENERS
@@ -2881,6 +2937,9 @@
         document.getElementById('clearUkcBtn').addEventListener('click', clearUkcResult);
         document.getElementById('getDepthFromWaypointBtn').addEventListener('click', getDepthFromSelectedWaypoint);
 
+        // TOMBOL GENERATE SEGMEN
+        document.getElementById('generateSegmenBtn').addEventListener('click', generateSegmenRoute);
+
         // Trajectory event listeners
         document.getElementById('vesselSelect').addEventListener('change', function() {
             const idx = parseInt(this.value);
@@ -2895,7 +2954,6 @@
         document.getElementById('showTrajectoryBtn').addEventListener('click', showTrajectoryRoute);
         document.getElementById('checkTrajectoryDepthBtn').addEventListener('click', checkTrajectoryDepth);
         
-        // Comparison button
         document.getElementById('compareRouteBtn').addEventListener('click', function() {
             if (!lastRoutePathIds || lastRoutePathIds.length < 2) {
                 alert('⚠️ Generate rute terlebih dahulu!');
@@ -2937,6 +2995,7 @@
                     clearWaypointMarkers(); 
                     const oldLegend = document.querySelector('.route-legend');
                     if (oldLegend) oldLegend.remove();
+                    clearSegmentLines();
                 }
             pickMode = null; });
 
@@ -2959,7 +3018,7 @@
         setRouteMode("AUTO");
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
-            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan", "#2f9e6b");
+            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Klik 'GENERATE RUTE 3 SEGMEN' untuk rute dengan 3 warna.", "#2f9e6b");
     </script>
 </body>
 </html>
