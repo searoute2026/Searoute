@@ -690,6 +690,7 @@
             display: flex;
             gap: 8px;
             margin-top: 8px;
+            flex-wrap: wrap;
         }
         .trajectory-selector .traj-actions button {
             flex: 1;
@@ -704,6 +705,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            min-width: 70px;
         }
         .trajectory-selector .traj-actions .btn-load {
             background: #1f7e9e;
@@ -729,6 +731,15 @@
         }
         .trajectory-selector .traj-actions .btn-depth:active {
             background: #27ae60;
+            transform: scale(0.98);
+        }
+        .trajectory-selector .traj-actions .btn-compare {
+            background: #8e44ad;
+            color: white;
+            border: none;
+        }
+        .trajectory-selector .traj-actions .btn-compare:active {
+            background: #7d3c98;
             transform: scale(0.98);
         }
 
@@ -865,6 +876,45 @@
             background: #8e44ad;
             border-radius: 4px;
         }
+
+        /* Route Legend - Updated with new colors */
+        .route-legend {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            z-index: 1000;
+            border: 1px solid #e2edf5;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+        }
+        .route-legend .legend-title {
+            font-weight: 700;
+            color: #1a3e4f;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .route-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #333;
+        }
+        .route-legend .legend-color {
+            display: inline-block;
+            width: 30px;
+            height: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -958,7 +1008,7 @@
                 <div class="traj-actions">
                     <button class="btn-load" id="loadTrajectoryBtn"><i class="fas fa-ship"></i> Muat Kapal</button>
                     <button class="btn-show" id="showTrajectoryBtn"><i class="fas fa-map"></i> Tampilkan Rute</button>
-                    <button class="btn-show" id="compareRouteBtn" style="background:#8e44ad; color:white; border:none;"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
+                    <button class="btn-compare" id="compareRouteBtn"><i class="fas fa-arrows-left-right"></i> Bandingkan</button>
                     <button class="btn-depth" id="checkTrajectoryDepthBtn"><i class="fas fa-water"></i> Cek Kedalaman</button>
                 </div>
             </div>
@@ -1123,6 +1173,16 @@
         const WP_CONNECT_RADIUS = 3.0,
             WP_K_NEAR = 9,
             MAX_ITER = 250000;
+
+        // Warna segmen sesuai permintaan
+        // Segmen 1: Ungu Muda (#D8A0D8)
+        // Segmen 2: Ungu Tua (#8B008B)
+        // Segmen 3: Merah (#FF0000)
+        const SEGMENT_COLORS = {
+            seg1: '#D8A0D8', // Ungu Muda
+            seg2: '#8B008B', // Ungu Tua
+            seg3: '#FF0000'  // Merah
+        };
 
         function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 
@@ -1415,6 +1475,139 @@
         }
 
         // ============================================================
+        // DRAW ROUTE DENGAN 3 SEGMEN: 
+        // Segmen 1: UNGU MUDA (#D8A0D8)
+        // Segmen 2: UNGU TUA (#8B008B)  
+        // Segmen 3: MERAH (#FF0000)
+        // ============================================================
+        function drawRouteWithThreeSegments(coords) {
+            if (routeLine) {
+                if (typeof routeLine.remove === 'function') {
+                    routeLine.remove();
+                } else if (routeLine._layers) {
+                    for (const line of routeLine._layers) {
+                        map.removeLayer(line);
+                    }
+                } else {
+                    map.removeLayer(routeLine);
+                }
+                routeLine = null;
+            }
+
+            if (!coords || coords.length < 2) return;
+
+            currentRouteCoords = coords;
+            lastRouteCoords = coords;
+            const smoothed = smoothCurve(coords, 25);
+            
+            if (smoothed.length < 3) {
+                routeLine = L.polyline(smoothed, { 
+                    color: SEGMENT_COLORS.seg2, 
+                    weight: 5, 
+                    opacity: 0.9 
+                }).addTo(map);
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                return;
+            }
+
+            const totalPoints = smoothed.length;
+            const third1 = Math.floor(totalPoints * 0.33);
+            const third2 = Math.floor(totalPoints * 0.66);
+            
+            const seg1End = Math.max(2, third1);
+            const seg2End = Math.max(seg1End + 1, third2);
+            
+            const seg1 = smoothed.slice(0, seg1End + 1);
+            const seg2 = smoothed.slice(seg1End, seg2End + 1);
+            const seg3 = smoothed.slice(seg2End);
+
+            const lines = [];
+            
+            // Segmen 1: Ungu Muda
+            if (seg1.length >= 2) {
+                const line1 = L.polyline(seg1, {
+                    color: SEGMENT_COLORS.seg1, // #D8A0D8
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line1);
+            }
+            
+            // Segmen 2: Ungu Tua
+            if (seg2.length >= 2) {
+                const line2 = L.polyline(seg2, {
+                    color: SEGMENT_COLORS.seg2, // #8B008B
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line2);
+            }
+            
+            // Segmen 3: Merah
+            if (seg3.length >= 2) {
+                const line3 = L.polyline(seg3, {
+                    color: SEGMENT_COLORS.seg3, // #FF0000
+                    weight: 6,
+                    opacity: 0.95,
+                    smoothFactor: 1
+                }).addTo(map);
+                lines.push(line3);
+            }
+
+            if (lines.length > 0) {
+                routeLine = {
+                    _layers: lines,
+                    getBounds: function() {
+                        const allCoords = [];
+                        for (const line of lines) {
+                            allCoords.push(...line.getLatLngs());
+                        }
+                        return L.latLngBounds(allCoords);
+                    }
+                };
+                routeLine.remove = function() {
+                    for (const line of lines) {
+                        map.removeLayer(line);
+                    }
+                };
+                
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            }
+
+            addRouteLegend();
+        }
+
+        function addRouteLegend() {
+            const oldLegend = document.querySelector('.route-legend');
+            if (oldLegend) oldLegend.remove();
+
+            const legend = document.createElement('div');
+            legend.className = 'route-legend';
+            legend.innerHTML = `
+                <div class="legend-title">🚢 Rute</div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg1};"></span>
+                    <span>Segmen 1 (Awal)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg2};"></span>
+                    <span>Segmen 2 (Tengah)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:${SEGMENT_COLORS.seg3};"></span>
+                    <span>Segmen 3 (Akhir)</span>
+                </div>
+            `;
+            document.getElementById('map').appendChild(legend);
+        }
+
+        function drawRouteAsCurve(coords) {
+            drawRouteWithThreeSegments(coords);
+        }
+
+        // ============================================================
         // TRAJECTORY DEPTH CHECK
         // ============================================================
         function checkTrajectoryDepth() {
@@ -1544,150 +1737,6 @@
             if (trajectoryRouteLine) {
                 map.fitBounds(trajectoryRouteLine.getBounds(), { padding: [50, 50] });
             }
-        }
-
-        // ============================================================
-        // DRAW ROUTE DENGAN 3 WARNA
-        // ============================================================
-        function drawRouteWithThreeColors(coords) {
-            if (routeLine) {
-                if (typeof routeLine.remove === 'function') {
-                    routeLine.remove();
-                } else if (routeLine._layers) {
-                    for (const line of routeLine._layers) {
-                        map.removeLayer(line);
-                    }
-                } else {
-                    map.removeLayer(routeLine);
-                }
-                routeLine = null;
-            }
-
-            if (!coords || coords.length < 2) return;
-
-            currentRouteCoords = coords;
-            lastRouteCoords = coords;
-            const smoothed = smoothCurve(coords, 25);
-            
-            if (smoothed.length < 3) {
-                routeLine = L.polyline(smoothed, { 
-                    color: '#8B008B', 
-                    weight: 5, 
-                    opacity: 0.9 
-                }).addTo(map);
-                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-                return;
-            }
-
-            const totalPoints = smoothed.length;
-            const third1 = Math.floor(totalPoints * 0.33);
-            const third2 = Math.floor(totalPoints * 0.66);
-            
-            const seg1End = Math.max(2, third1);
-            const seg2End = Math.max(seg1End + 1, third2);
-            
-            const seg1 = smoothed.slice(0, seg1End + 1);
-            const seg2 = smoothed.slice(seg1End, seg2End + 1);
-            const seg3 = smoothed.slice(seg2End);
-
-            const lines = [];
-            
-            if (seg1.length >= 2) {
-                const line1 = L.polyline(seg1, {
-                    color: '#FF0000',
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line1);
-            }
-            
-            if (seg2.length >= 2) {
-                const line2 = L.polyline(seg2, {
-                    color: '#8B008B',
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line2);
-            }
-            
-            if (seg3.length >= 2) {
-                const line3 = L.polyline(seg3, {
-                    color: '#D8A0D8',
-                    weight: 6,
-                    opacity: 0.95,
-                    smoothFactor: 1
-                }).addTo(map);
-                lines.push(line3);
-            }
-
-            if (lines.length > 0) {
-                routeLine = {
-                    _layers: lines,
-                    getBounds: function() {
-                        const allCoords = [];
-                        for (const line of lines) {
-                            allCoords.push(...line.getLatLngs());
-                        }
-                        return L.latLngBounds(allCoords);
-                    }
-                };
-                routeLine.remove = function() {
-                    for (const line of lines) {
-                        map.removeLayer(line);
-                    }
-                };
-                
-                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-            }
-
-            addRouteLegend();
-        }
-
-        function addRouteLegend() {
-            const oldLegend = document.querySelector('.route-legend');
-            if (oldLegend) oldLegend.remove();
-
-            const legend = document.createElement('div');
-            legend.className = 'route-legend';
-            legend.style.cssText = `
-                position: absolute;
-                bottom: 30px;
-                right: 30px;
-                background: rgba(255,255,255,0.95);
-                padding: 12px 16px;
-                border-radius: 12px;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-                font-size: 12px;
-                font-family: 'Inter', sans-serif;
-                z-index: 1000;
-                border: 1px solid #e2edf5;
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                pointer-events: none;
-            `;
-            legend.innerHTML = `
-                <div style="font-weight:600; color:#1a3e4f; margin-bottom:4px;">🚢 Rute</div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="display:inline-block; width:24px; height:4px; background:#FF0000; border-radius:2px;"></span>
-                    <span style="color:#333;">Awal (Merah)</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="display:inline-block; width:24px; height:4px; background:#8B008B; border-radius:2px;"></span>
-                    <span style="color:#333;">Tengah (Ungu)</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="display:inline-block; width:24px; height:4px; background:#D8A0D8; border-radius:2px;"></span>
-                    <span style="color:#333;">Akhir (Ungu Muda)</span>
-                </div>
-            `;
-            document.getElementById('map').appendChild(legend);
-        }
-
-        function drawRouteAsCurve(coords) {
-            drawRouteWithThreeColors(coords);
         }
 
         // ============================================================
@@ -2382,7 +2431,7 @@
                 ]; };
             const pathIds = astarWithVirtual('S', 'E', extraEdges, coordOf);
             showProgress(0.85);
-            if (!pathIds || pathIds.length < 2) { if (canSee(start, end, 45)) { drawRouteWithThreeColors([start, end]);
+            if (!pathIds || pathIds.length < 2) { if (canSee(start, end, 45)) { drawRouteWithThreeSegments([start, end]);
                     setStatus(`✅ Jalur Langsung: ${distKm(start,end).toFixed(1)} km`, "#2ecc71");
                     showWaypointMarkersFromPath([]); } else { setStatus("❌ Rute tidak ditemukan", "red"); }
                 showProgress(1);
@@ -2394,7 +2443,7 @@
             
             const rawCoords = pathIds.map(id => coordOf(id));
             lastRouteCoords = rawCoords;
-            drawRouteWithThreeColors(rawCoords);
+            drawRouteWithThreeSegments(rawCoords);
             let totalKm = 0;
             let unsafeWaypointsCount = 0;
             let unsafeWaypointDetails = [];
