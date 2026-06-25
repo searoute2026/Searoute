@@ -567,6 +567,94 @@
             padding-top: 6px;
         }
 
+        /* Segmen UKC Result Panel */
+        .ukc-segmen-result {
+            background: #f7fbfe;
+            border-radius: 16px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #1f7e9e;
+            display: none;
+        }
+        .ukc-segmen-result .segmen-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2edf5;
+        }
+        .ukc-segmen-result .segmen-header i {
+            color: #1f7e9e;
+            font-size: 1.1rem;
+        }
+        .ukc-segmen-result .segmen-header span {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #016e8c;
+        }
+        .ukc-segmen-result .segmen-header .segmen-badge {
+            background: #8e44ad;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        .segmen-item {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid #3498db;
+            font-size: 0.7rem;
+        }
+        .segmen-item.acceptable {
+            border-left-color: #27ae60;
+            background: #eafaf1;
+        }
+        .segmen-item.not-acceptable {
+            border-left-color: #e74c3c;
+            background: #fdedec;
+        }
+        .segmen-item .segmen-name {
+            font-weight: 700;
+            color: #2d6d89;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .segmen-item .segmen-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 12px;
+            font-size: 0.65rem;
+        }
+        .segmen-item .segmen-details .label {
+            color: #5a7e92;
+        }
+        .segmen-item .segmen-details .value {
+            font-weight: 600;
+            text-align: right;
+        }
+        .segmen-item .segmen-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.6rem;
+        }
+        .segmen-item .segmen-status.acceptable {
+            background: #27ae60;
+            color: white;
+        }
+        .segmen-item .segmen-status.not-acceptable {
+            background: #e74c3c;
+            color: white;
+        }
+
         .response-panel {
             background: #f0f8fe;
             border-radius: 16px;
@@ -1050,6 +1138,16 @@
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
 
+            <!-- UKC Segmen Result Panel -->
+            <div class="ukc-segmen-result" id="ukcSegmenResult">
+                <div class="segmen-header">
+                    <i class="fas fa-layer-group"></i>
+                    <span>HASIL UKC PER SEGMEN</span>
+                    <span class="segmen-badge">3 SEGMEN</span>
+                </div>
+                <div id="segmenContent"></div>
+            </div>
+
             <div class="comparison-panel" id="comparisonPanel">
                 <div class="comp-header">
                     <i class="fas fa-arrows-left-right"></i>
@@ -1109,7 +1207,7 @@
         }).addTo(map);
 
         // ============================================================
-        // SEGMEN DATA
+        // SEGMEN DATA (3 Segmen dengan polygon masing-masing)
         // ============================================================
         const SEGMEN_DATA = {
             "segmen": [
@@ -1145,13 +1243,15 @@
 
         // Warna untuk setiap segmen
         const SEGMENT_COLORS = {
-            'Segmen 1': '#FF0000',     // Merah
-            'Segmen 2': '#8B008B',     // Ungu Tua
-            'Segmen 3': '#D8A0D8',     // Ungu Muda
-            'default': '#3498DB'       // Biru (setelah melewati semua segmen)
+            'Segmen 1': '#FF0000',
+            'Segmen 2': '#8B008B',
+            'Segmen 3': '#D8A0D8',
+            'default': '#3498DB'
         };
 
-        // Fungsi untuk mengecek apakah titik berada di dalam polygon segmen
+        // ============================================================
+        // FUNGSI SEGMEN
+        // ============================================================
         function pointInSegmentPolygon(lat, lng, polygon) {
             let inside = false;
             const n = polygon.length;
@@ -1165,9 +1265,7 @@
             return inside;
         }
 
-        // Fungsi untuk menentukan segmen mana yang dilalui oleh sebuah titik
         function getSegmentForPoint(lat, lng) {
-            // Cek dari segmen 1 sampai 3
             for (const seg of SEGMEN_DATA.segmen) {
                 if (pointInSegmentPolygon(lat, lng, seg.polygon)) {
                     return seg.name;
@@ -1176,14 +1274,10 @@
             return null;
         }
 
-        // Fungsi untuk menentukan warna rute berdasarkan segmen yang dilalui
         function getColorForRoute(pathCoords) {
             if (!pathCoords || pathCoords.length < 2) return SEGMENT_COLORS.default;
-
-            // Track segmen mana saja yang telah dilalui
             const passedSegments = new Set();
             let lastSegment = null;
-
             for (const coord of pathCoords) {
                 const seg = getSegmentForPoint(coord[0], coord[1]);
                 if (seg) {
@@ -1191,33 +1285,14 @@
                     lastSegment = seg;
                 }
             }
-
-            // Jika semua 3 segmen telah dilalui, beri warna biru
-            if (passedSegments.size >= 3) {
-                return SEGMENT_COLORS.default;
-            }
-
-            // Jika segmen 3 dilalui
-            if (passedSegments.has('Segmen 3')) {
-                return SEGMENT_COLORS['Segmen 3'];
-            }
-
-            // Jika segmen 2 dilalui
-            if (passedSegments.has('Segmen 2')) {
-                return SEGMENT_COLORS['Segmen 2'];
-            }
-
-            // Jika segmen 1 dilalui
-            if (passedSegments.has('Segmen 1')) {
-                return SEGMENT_COLORS['Segmen 1'];
-            }
-
+            if (passedSegments.size >= 3) return SEGMENT_COLORS.default;
+            if (passedSegments.has('Segmen 3')) return SEGMENT_COLORS['Segmen 3'];
+            if (passedSegments.has('Segmen 2')) return SEGMENT_COLORS['Segmen 2'];
+            if (passedSegments.has('Segmen 1')) return SEGMENT_COLORS['Segmen 1'];
             return SEGMENT_COLORS.default;
         }
 
-        // Fungsi untuk menggambar rute dengan warna dinamis berdasarkan segmen
         function drawDynamicRoute(coords) {
-            // Hapus rute sebelumnya
             if (routeLine) {
                 if (typeof routeLine.remove === 'function') {
                     routeLine.remove();
@@ -1230,30 +1305,22 @@
                 }
                 routeLine = null;
             }
-
-            // Hapus legend lama
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
 
             if (!coords || coords.length < 2) return;
-
             currentRouteCoords = coords;
             lastRouteCoords = coords;
             const smoothed = smoothCurve(coords, 25);
 
             if (smoothed.length < 3) {
                 const color = getColorForRoute(smoothed);
-                routeLine = L.polyline(smoothed, {
-                    color: color,
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(map);
+                routeLine = L.polyline(smoothed, { color, weight: 6, opacity: 0.95 }).addTo(map);
                 map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
                 addDynamicLegend(color);
                 return;
             }
 
-            // Split route menjadi beberapa bagian berdasarkan segmen
             const segments = [];
             let currentSegment = [];
             let currentColor = null;
@@ -1263,28 +1330,23 @@
                 const segName = getSegmentForPoint(coord[0], coord[1]);
                 const color = segName ? SEGMENT_COLORS[segName] : SEGMENT_COLORS.default;
 
-                // Jika ini adalah titik pertama atau warna berubah, mulai segmen baru
                 if (i === 0) {
                     currentColor = color;
                     currentSegment.push(coord);
                 } else if (color === currentColor) {
                     currentSegment.push(coord);
                 } else {
-                    // Simpan segmen sebelumnya jika cukup panjang
                     if (currentSegment.length >= 2) {
                         segments.push({ coords: [...currentSegment], color: currentColor });
                     } else if (currentSegment.length === 1 && segments.length > 0) {
-                        // Tambahkan titik tunggal ke segmen sebelumnya
                         const lastSeg = segments[segments.length - 1];
                         lastSeg.coords.push(coord);
                     }
-                    // Mulai segmen baru
                     currentColor = color;
                     currentSegment = [coord];
                 }
             }
 
-            // Simpan segmen terakhir
             if (currentSegment.length >= 2) {
                 segments.push({ coords: [...currentSegment], color: currentColor });
             } else if (currentSegment.length === 1 && segments.length > 0) {
@@ -1292,20 +1354,14 @@
                 lastSeg.coords.push(currentSegment[0]);
             }
 
-            // Jika tidak ada segmen, gunakan warna default
             if (segments.length === 0) {
                 const color = getColorForRoute(smoothed);
-                routeLine = L.polyline(smoothed, {
-                    color: color,
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(map);
+                routeLine = L.polyline(smoothed, { color, weight: 6, opacity: 0.95 }).addTo(map);
                 map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
                 addDynamicLegend(color);
                 return;
             }
 
-            // Gambar setiap segmen
             const lines = [];
             for (const seg of segments) {
                 if (seg.coords.length >= 2) {
@@ -1319,7 +1375,6 @@
                 }
             }
 
-            // Jika ada segmen yang terputus, hubungkan dengan garis putus-putus
             if (segments.length > 1) {
                 for (let i = 0; i < segments.length - 1; i++) {
                     const lastCoord = segments[i].coords[segments[i].coords.length - 1];
@@ -1352,15 +1407,11 @@
                         }
                     }
                 };
-
                 map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
             }
-
-            // Tampilkan legend dinamis
             addDynamicLegend(segments);
         }
 
-        // Fungsi untuk menambahkan legend dinamis
         function addDynamicLegend(segments) {
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
@@ -1369,14 +1420,11 @@
             legend.className = 'route-legend';
 
             let html = `<div class="legend-title">🚢 Rute Dinamis</div>`;
-
-            // Tampilkan segmen yang ada
             const usedColors = new Map();
             if (Array.isArray(segments)) {
                 for (const seg of segments) {
                     if (seg.color && seg.coords && seg.coords.length >= 2) {
                         let label = 'Rute';
-                        // Cari nama segmen berdasarkan warna
                         for (const [name, color] of Object.entries(SEGMENT_COLORS)) {
                             if (color === seg.color && name !== 'default') {
                                 label = name;
@@ -1395,7 +1443,6 @@
                     }
                 }
             } else if (segments) {
-                // Single color
                 html += `
                     <div class="legend-item">
                         <span class="legend-color" style="background:${segments};"></span>
@@ -1404,7 +1451,6 @@
                 `;
             }
 
-            // Tambahkan warna biru untuk area yang sudah melewati semua segmen
             html += `
                 <div class="legend-item">
                     <span class="legend-color" style="background:${SEGMENT_COLORS.default};"></span>
@@ -1510,7 +1556,7 @@
         }
 
         // ============================================================
-        // UKC MODUL
+        // UKC MODUL - DENGAN SEGMEN
         // ============================================================
         let ukcInputs = {
             shipName: '',
@@ -1526,6 +1572,206 @@
         };
 
         let lastUkcResult = null;
+        let segmenUkcResults = [];
+
+        function calculateUKC(inputs) {
+            const numericFields = ['length', 'breadth', 'staticDraft', 'trimDraft', 'listingDraft', 'squat', 'waveMotion',
+                'waterDepth'
+            ];
+            for (const field of numericFields) {
+                if (inputs[field] < 0) {
+                    return { error: `Nilai ${field} tidak boleh negatif` };
+                }
+            }
+
+            const { staticDraft, trimDraft, listingDraft, squat, waveMotion, waterDepth, environment } = inputs;
+
+            const maxDraftFromTrimListing = Math.max(trimDraft, listingDraft);
+            const dynamicDraft = maxDraftFromTrimListing + squat + waveMotion;
+
+            let ukc = 0;
+            if (environment === 'Port Approach') {
+                ukc = Math.max(1.0, 0.10 * staticDraft);
+            } else {
+                ukc = 0.20 * dynamicDraft;
+            }
+
+            const requiredDepth = dynamicDraft + ukc;
+
+            let status = 'NOT ACCEPTABLE';
+            if (waterDepth >= requiredDepth) {
+                status = 'ACCEPTABLE';
+            }
+
+            const safetyMargin = waterDepth - requiredDepth;
+
+            let warning = '';
+            if (dynamicDraft > waterDepth) {
+                warning = '⚠️ Dynamic Draft melebihi kedalaman air!';
+            }
+
+            return {
+                shipName: inputs.shipName || 'Unknown',
+                dynamicDraft: Math.round(dynamicDraft * 100) / 100,
+                ukc: Math.round(ukc * 100) / 100,
+                requiredDepth: Math.round(requiredDepth * 100) / 100,
+                availableDepth: Math.round(waterDepth * 100) / 100,
+                status: status,
+                safetyMargin: Math.round(safetyMargin * 100) / 100,
+                warning: warning,
+                maxDraftFromTrimListing: Math.round(maxDraftFromTrimListing * 100) / 100,
+                staticDraft: Math.round(staticDraft * 100) / 100,
+                squat: Math.round(squat * 100) / 100,
+                waveMotion: Math.round(waveMotion * 100) / 100
+            };
+        }
+
+        // Fungsi untuk menghitung UKC per segmen
+        function calculateUkcPerSegmen() {
+            const segmenResults = [];
+            
+            // Ambil input UKC
+            const shipName = document.getElementById('ukcShipName').value || 'Unknown';
+            const length = parseFloat(document.getElementById('ukcLength').value) || 0;
+            const breadth = parseFloat(document.getElementById('ukcBreadth').value) || 0;
+            const staticDraft = parseFloat(document.getElementById('ukcStaticDraft').value) || 0;
+            const trimDraft = parseFloat(document.getElementById('ukcTrimDraft').value) || 0;
+            const listingDraft = parseFloat(document.getElementById('ukcListingDraft').value) || 0;
+            const squat = parseFloat(document.getElementById('ukcSquat').value) || 0;
+            const waveMotion = parseFloat(document.getElementById('ukcWaveMotion').value) || 0;
+            const environment = document.getElementById('ukcEnvironment').value;
+
+            if (staticDraft === 0) {
+                alert('Harap isi Static Draft (T) kapal!');
+                return;
+            }
+
+            // Untuk setiap segmen, hitung UKC berdasarkan kedalaman di polygon segmen
+            for (const seg of SEGMEN_DATA.segmen) {
+                // Ambil titik tengah polygon sebagai referensi kedalaman
+                let avgLat = 0, avgLng = 0;
+                for (const p of seg.polygon) {
+                    avgLat += p[0];
+                    avgLng += p[1];
+                }
+                avgLat /= seg.polygon.length;
+                avgLng /= seg.polygon.length;
+
+                // Cari kedalaman di titik tengah segmen
+                let waterDepth = getDepthAt(avgLat, avgLng);
+                if (waterDepth === DEPTH_NOT_FOUND) {
+                    // Coba cari kedalaman terdekat dari waypoint
+                    let minDist = Infinity;
+                    let nearestDepth = DEPTH_NOT_FOUND;
+                    for (const wp of waypoints) {
+                        const d = dist([avgLat, avgLng], [wp.lat, wp.lng]);
+                        if (d < minDist) {
+                            minDist = d;
+                            nearestDepth = getDepthAt(wp.lat, wp.lng);
+                        }
+                    }
+                    if (nearestDepth !== DEPTH_NOT_FOUND && minDist < 1.0) {
+                        waterDepth = nearestDepth;
+                    }
+                }
+
+                // Hitung UKC untuk segmen ini
+                const inputs = {
+                    shipName: shipName,
+                    length: length,
+                    breadth: breadth,
+                    staticDraft: staticDraft,
+                    trimDraft: trimDraft,
+                    listingDraft: listingDraft,
+                    squat: squat,
+                    waveMotion: waveMotion,
+                    waterDepth: waterDepth === DEPTH_NOT_FOUND ? 0 : waterDepth,
+                    environment: environment
+                };
+
+                const result = calculateUKC(inputs);
+                
+                segmenResults.push({
+                    segmenName: seg.name,
+                    segmenPolygon: seg.polygon,
+                    referenceLat: avgLat,
+                    referenceLng: avgLng,
+                    waterDepth: waterDepth === DEPTH_NOT_FOUND ? null : waterDepth,
+                    result: result
+                });
+            }
+
+            segmenUkcResults = segmenResults;
+            displaySegmenResults(segmenResults);
+        }
+
+        function displaySegmenResults(results) {
+            const panel = document.getElementById('ukcSegmenResult');
+            const content = document.getElementById('segmenContent');
+            panel.style.display = 'block';
+
+            let html = '';
+            let allAccepted = true;
+
+            for (const seg of results) {
+                const isAccepted = seg.result.status === 'ACCEPTABLE';
+                if (!isAccepted) allAccepted = false;
+                
+                const depthDisplay = seg.waterDepth !== null ? `${seg.waterDepth.toFixed(1)} m` : 'Tidak tersedia';
+                
+                html += `
+                    <div class="segmen-item ${isAccepted ? 'acceptable' : 'not-acceptable'}">
+                        <div class="segmen-name">
+                            <span>📍 ${seg.segmenName}</span>
+                            <span class="segmen-status ${isAccepted ? 'acceptable' : 'not-acceptable'}">
+                                ${isAccepted ? '✅ ACCEPTED' : '❌ NOT ACCEPTABLE'}
+                            </span>
+                        </div>
+                        <div class="segmen-details">
+                            <div><span class="label">Kedalaman</span></div>
+                            <div><span class="value">${depthDisplay}</span></div>
+                            <div><span class="label">Dynamic Draft</span></div>
+                            <div><span class="value">${seg.result.dynamicDraft.toFixed(2)} m</span></div>
+                            <div><span class="label">UKC Required</span></div>
+                            <div><span class="value">${seg.result.ukc.toFixed(2)} m</span></div>
+                            <div><span class="label">Required Depth</span></div>
+                            <div><span class="value">${seg.result.requiredDepth.toFixed(2)} m</span></div>
+                            <div><span class="label">Safety Margin</span></div>
+                            <div><span class="value" style="color:${seg.result.safetyMargin >= 0 ? '#27ae60' : '#e74c3c'}">
+                                ${seg.result.safetyMargin >= 0 ? '+' : ''}${seg.result.safetyMargin.toFixed(2)} m
+                            </span></div>
+                            <div><span class="label">Referensi</span></div>
+                            <div><span class="value">${seg.referenceLat.toFixed(4)}, ${seg.referenceLng.toFixed(4)}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Summary
+            const totalSegments = results.length;
+            const acceptedCount = results.filter(r => r.result.status === 'ACCEPTABLE').length;
+            
+            html += `
+                <div style="background:#eaf2f8; border-radius:12px; padding:10px 12px; margin-top:8px; font-size:0.7rem;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px 12px;">
+                        <div><span style="color:#5a7e92;">Total Segmen</span></div>
+                        <div style="font-weight:600; text-align:right;">${totalSegments}</div>
+                        <div><span style="color:#5a7e92;">Segmen ACCEPTED</span></div>
+                        <div style="font-weight:600; text-align:right; color:#27ae60;">${acceptedCount} ${acceptedCount === totalSegments ? '✅' : ''}</div>
+                        <div><span style="color:#5a7e92;">Segmen NOT ACCEPTABLE</span></div>
+                        <div style="font-weight:600; text-align:right; color:#e74c3c;">${totalSegments - acceptedCount} ${totalSegments - acceptedCount > 0 ? '⚠️' : ''}</div>
+                    </div>
+                    <div style="margin-top:6px; padding-top:6px; border-top:1px solid #d4e2ec; text-align:center; font-weight:700; color:${allAccepted ? '#27ae60' : '#e74c3c'};">
+                        ${allAccepted ? '✅ SEMUA SEGMEN AMAN (ACCEPTED)' : '⚠️ ADA SEGMEN YANG TIDAK AMAN (NOT ACCEPTABLE)'}
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+
+            setStatus(`📊 UKC Segmen: ${acceptedCount}/${totalSegments} ACCEPTED`, allAccepted ? '#27ae60' : '#e67e22');
+            setInfo(`Perhitungan UKC per segmen selesai. ${acceptedCount} dari ${totalSegments} segmen aman.`);
+        }
 
         function getDepthFromData(lat, lng) {
             const depth = getDepthAt(lat, lng);
@@ -1587,56 +1833,115 @@
             setInfo(`Kedalaman: ${depth.toFixed(1)}m (dari ${depthZones.length > 0 ? 'kedalaman.json' : 'waypoint'})`);
         }
 
-        function calculateUKC(inputs) {
-            const numericFields = ['length', 'breadth', 'staticDraft', 'trimDraft', 'listingDraft', 'squat', 'waveMotion',
-                'waterDepth'
-            ];
-            for (const field of numericFields) {
-                if (inputs[field] < 0) {
-                    return { error: `Nilai ${field} tidak boleh negatif` };
+        function handleUkcCalculation() {
+            const shipName = document.getElementById('ukcShipName').value || 'Unknown';
+            const length = parseFloat(document.getElementById('ukcLength').value) || 0;
+            const breadth = parseFloat(document.getElementById('ukcBreadth').value) || 0;
+            const staticDraft = parseFloat(document.getElementById('ukcStaticDraft').value) || 0;
+            const trimDraft = parseFloat(document.getElementById('ukcTrimDraft').value) || 0;
+            const listingDraft = parseFloat(document.getElementById('ukcListingDraft').value) || 0;
+            const squat = parseFloat(document.getElementById('ukcSquat').value) || 0;
+            const waveMotion = parseFloat(document.getElementById('ukcWaveMotion').value) || 0;
+            const environment = document.getElementById('ukcEnvironment').value;
+
+            let waterDepth = ukcInputs.waterDepth;
+
+            if (waterDepth === 0 || waterDepth === undefined) {
+                if (start) {
+                    waterDepth = getDepthFromData(start[0], start[1]);
+                    if (waterDepth === DEPTH_NOT_FOUND) {
+                        alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi START. Klik "Ambil Kedalaman dari Waypoint" terlebih dahulu.');
+                        return;
+                    }
+                    ukcInputs.waterDepth = waterDepth;
+                } else {
+                    alert('⚠️ Tidak ada posisi START. Cari kapal atau tentukan START terlebih dahulu, lalu klik "Ambil Kedalaman dari Waypoint".');
+                    return;
                 }
             }
 
-            const { staticDraft, trimDraft, listingDraft, squat, waveMotion, waterDepth, environment } = inputs;
+            ukcInputs = { shipName, length, breadth, staticDraft, trimDraft, listingDraft, squat, waveMotion,
+                waterDepth, environment };
 
-            const maxDraftFromTrimListing = Math.max(trimDraft, listingDraft);
-            const dynamicDraft = maxDraftFromTrimListing + squat + waveMotion;
-
-            let ukc = 0;
-            if (environment === 'Port Approach') {
-                ukc = Math.max(1.0, 0.10 * staticDraft);
-            } else {
-                ukc = 0.20 * dynamicDraft;
+            const numericFields = ['length', 'breadth', 'staticDraft', 'trimDraft', 'listingDraft', 'squat',
+                'waveMotion', 'waterDepth'
+            ];
+            for (const field of numericFields) {
+                if (ukcInputs[field] < 0) {
+                    alert(`Nilai ${field} tidak boleh negatif!`);
+                    return;
+                }
             }
 
-            const requiredDepth = dynamicDraft + ukc;
-
-            let status = 'NOT ACCEPTABLE';
-            if (waterDepth >= requiredDepth) {
-                status = 'ACCEPTABLE';
+            const dynamicDraft = Math.max(trimDraft, listingDraft) + squat + waveMotion;
+            if (dynamicDraft > waterDepth && waterDepth > 0) {
+                alert(`⚠️ Dynamic Draft (${dynamicDraft.toFixed(2)}m) melebihi kedalaman air (${waterDepth.toFixed(2)}m)!`);
             }
 
-            const safetyMargin = waterDepth - requiredDepth;
-
-            let warning = '';
-            if (dynamicDraft > waterDepth) {
-                warning = '⚠️ Dynamic Draft melebihi kedalaman air!';
+            if (staticDraft === 0) {
+                alert('Harap isi Static Draft (T) kapal!');
+                return;
             }
 
-            return {
-                shipName: inputs.shipName || 'Unknown',
-                dynamicDraft: Math.round(dynamicDraft * 100) / 100,
-                ukc: Math.round(ukc * 100) / 100,
-                requiredDepth: Math.round(requiredDepth * 100) / 100,
-                availableDepth: Math.round(waterDepth * 100) / 100,
-                status: status,
-                safetyMargin: Math.round(safetyMargin * 100) / 100,
-                warning: warning,
-                maxDraftFromTrimListing: Math.round(maxDraftFromTrimListing * 100) / 100,
-                staticDraft: Math.round(staticDraft * 100) / 100,
-                squat: Math.round(squat * 100) / 100,
-                waveMotion: Math.round(waveMotion * 100) / 100
-            };
+            const result = calculateUKC(ukcInputs);
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            lastUkcResult = result;
+
+            const resultDiv = document.getElementById('ukcResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `ukc-result ${result.status === 'ACCEPTABLE' ? 'acceptable' : 'not-acceptable'}`;
+
+            let warningHtml = result.warning ?
+                `<div style="color:#e67e22;font-weight:600;margin-bottom:4px;">${result.warning}</div>` : '';
+
+            const depthSource = depthZones.length > 0 ? 'kedalaman.json' : 'waypoint';
+
+            resultDiv.innerHTML = `
+                ${warningHtml}
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="label">${result.shipName}</span>
+                  <span class="status-badge ${result.status === 'ACCEPTABLE' ? '' : 'danger'}">${result.status}</span>
+                </div>
+                <div class="ukc-result-grid">
+                  <div class="item"><span class="label">Dynamic Draft</span><span class="value">${result.dynamicDraft.toFixed(2)} m</span></div>
+                  <div class="item"><span class="label">UKC Required</span><span class="value">${result.ukc.toFixed(2)} m</span></div>
+                  <div class="item"><span class="label">Required Depth</span><span class="value">${result.requiredDepth.toFixed(2)} m</span></div>
+                  <div class="item"><span class="label">Available Depth</span><span class="value">${result.availableDepth.toFixed(2)} m <span style="font-size:0.6rem;color:#5a7e92;">(dari ${depthSource})</span></span></div>
+                  <div class="item" style="grid-column: span 2;border-bottom:none;font-weight:700;color:${result.safetyMargin >= 0 ? '#27ae60' : '#e74c3c'}">
+                    <span class="label">Safety Margin</span>
+                    <span class="value">${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)} m</span>
+                  </div>
+                </div>
+                <div class="ukc-footer-note">
+                  <i class="fas fa-info-circle"></i> Env: ${environment} | Draft: ${result.staticDraft.toFixed(2)}m | Trim/Listing: ${result.maxDraftFromTrimListing.toFixed(2)}m | Squat: ${result.squat.toFixed(2)}m | Wave: ${result.waveMotion.toFixed(2)}m
+                </div>
+            `;
+
+            setStatus(`UKC: ${result.status} (Margin: ${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)}m)`,
+                result.status === 'ACCEPTABLE' ? '#27ae60' : '#e74c3c');
+            setInfo(
+                `UKC Analysis: ${result.status} | Required: ${result.requiredDepth.toFixed(2)}m | Available: ${result.availableDepth.toFixed(2)}m (dari ${depthSource})`
+                );
+
+            // Hitung UKC per segmen
+            calculateUkcPerSegmen();
+        }
+
+        function clearUkcResult() {
+            document.getElementById('ukcResult').style.display = 'none';
+            document.getElementById('ukcResult').className = 'ukc-result';
+            document.getElementById('ukcResult').innerHTML = '';
+            document.getElementById('ukcSegmenResult').style.display = 'none';
+            document.getElementById('segmenContent').innerHTML = '';
+            lastUkcResult = null;
+            segmenUkcResults = [];
+            ukcInputs.waterDepth = 0;
+            setStatus("UKC dibersihkan", "#447799");
+            setInfo("UKC result cleared.");
         }
 
         function isUkcSafe(depthMeters) {
@@ -1662,7 +1967,7 @@
         }
 
         // ============================================================
-        // FUNGSI-FUNGSI LAINNYA (sama seperti sebelumnya)
+        // FUNGSI-FUNGSI LAINNYA
         // ============================================================
         function canSee(a, b, samples = 22) { for (let i = 1; i < samples; i++) { const t = i / samples, lat = a[0] + (b[0] -
                     a[0]) * t, lng = a[1] + (b[1] - a[1]) * t; if (isBlocked(lat, lng)) return false; } return true; }
@@ -2472,6 +2777,16 @@
                 lines.push(`   Status        : ${lastUkcResult.status}`);
             }
 
+            // Tambahkan info segmen
+            if (segmenUkcResults.length > 0) {
+                lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+                lines.push(`📊 UKC PER SEGMEN:`);
+                for (const seg of segmenUkcResults) {
+                    const status = seg.result.status === 'ACCEPTABLE' ? '✅ ACCEPTED' : '❌ NOT ACCEPTABLE';
+                    lines.push(`   ${seg.segmenName}: ${status} (Depth: ${seg.waterDepth !== null ? seg.waterDepth.toFixed(1) : 'N/A'}m)`);
+                }
+            }
+
             lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
             lines.push(`🛳️  <span class="info">Navigasi aman, selalu perbarui data kedalaman.</span>`);
 
@@ -2479,7 +2794,7 @@
         }
 
         // ============================================================
-        // RUN ROUTE - Menggunakan drawDynamicRoute
+        // RUN ROUTE
         // ============================================================
         async function runRoute() {
             if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih dari Trajectory."); return; }
@@ -2541,7 +2856,6 @@
             const rawCoords = pathIds.map(id => coordOf(id));
             lastRouteCoords = rawCoords;
 
-            // Gunakan drawDynamicRoute untuk menggambar rute dengan warna dinamis
             drawDynamicRoute(rawCoords);
 
             let totalKm = 0;
@@ -2580,7 +2894,7 @@
         }
 
         // ============================================================
-        // FUNGSI LAINNYA (createShipIcon, startAnimation, updateTelemetryUI, fetchShipByMMSI, setupPortSearch, dll)
+        // FUNGSI LAINNYA
         // ============================================================
         function createShipIcon() { const sog = activeShipTelemetry?.sog || 0; const cog = activeShipTelemetry?.cog ||
                 '?'; const lengthVal = currentShipLength || activeShipTelemetry?.length || 0; const draftVal =
@@ -2782,6 +3096,8 @@
             document.getElementById('infoWaypoints').textContent = '-';
             document.getElementById('comparisonPanel').style.display = 'none';
             document.getElementById('comparisonContent').innerHTML = '';
+            document.getElementById('ukcSegmenResult').style.display = 'none';
+            document.getElementById('segmenContent').innerHTML = '';
             setStatus("Reset selesai.", "#447799");
             setInfo("Mode aktif.");
             document.getElementById('liveTelemetryPanel').style.display = 'none';
@@ -2840,114 +3156,6 @@
                         iconSize: [28, 28], iconAnchor: [14, 28] }) }).addTo(map).bindPopup("FINISH")
                     .openPopup();
                 setStatus(`🏁 Finish: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "#d97706"); } } }
-
-        // ============================================================
-        // UKC HANDLER
-        // ============================================================
-        function handleUkcCalculation() {
-            const shipName = document.getElementById('ukcShipName').value || 'Unknown';
-            const length = parseFloat(document.getElementById('ukcLength').value) || 0;
-            const breadth = parseFloat(document.getElementById('ukcBreadth').value) || 0;
-            const staticDraft = parseFloat(document.getElementById('ukcStaticDraft').value) || 0;
-            const trimDraft = parseFloat(document.getElementById('ukcTrimDraft').value) || 0;
-            const listingDraft = parseFloat(document.getElementById('ukcListingDraft').value) || 0;
-            const squat = parseFloat(document.getElementById('ukcSquat').value) || 0;
-            const waveMotion = parseFloat(document.getElementById('ukcWaveMotion').value) || 0;
-            const environment = document.getElementById('ukcEnvironment').value;
-
-            let waterDepth = ukcInputs.waterDepth;
-
-            if (waterDepth === 0 || waterDepth === undefined) {
-                if (start) {
-                    waterDepth = getDepthFromData(start[0], start[1]);
-                    if (waterDepth === DEPTH_NOT_FOUND) {
-                        alert('⚠️ Tidak dapat menemukan kedalaman untuk posisi START. Klik "Ambil Kedalaman dari Waypoint" terlebih dahulu.');
-                        return;
-                    }
-                    ukcInputs.waterDepth = waterDepth;
-                } else {
-                    alert('⚠️ Tidak ada posisi START. Cari kapal atau tentukan START terlebih dahulu, lalu klik "Ambil Kedalaman dari Waypoint".');
-                    return;
-                }
-            }
-
-            ukcInputs = { shipName, length, breadth, staticDraft, trimDraft, listingDraft, squat, waveMotion,
-                waterDepth, environment };
-
-            const numericFields = ['length', 'breadth', 'staticDraft', 'trimDraft', 'listingDraft', 'squat',
-                'waveMotion', 'waterDepth'
-            ];
-            for (const field of numericFields) {
-                if (ukcInputs[field] < 0) {
-                    alert(`Nilai ${field} tidak boleh negatif!`);
-                    return;
-                }
-            }
-
-            const dynamicDraft = Math.max(trimDraft, listingDraft) + squat + waveMotion;
-            if (dynamicDraft > waterDepth && waterDepth > 0) {
-                alert(`⚠️ Dynamic Draft (${dynamicDraft.toFixed(2)}m) melebihi kedalaman air (${waterDepth.toFixed(2)}m)!`);
-            }
-
-            if (staticDraft === 0) {
-                alert('Harap isi Static Draft (T) kapal!');
-                return;
-            }
-
-            const result = calculateUKC(ukcInputs);
-            if (result.error) {
-                alert(result.error);
-                return;
-            }
-
-            lastUkcResult = result;
-
-            const resultDiv = document.getElementById('ukcResult');
-            resultDiv.style.display = 'block';
-            resultDiv.className = `ukc-result ${result.status === 'ACCEPTABLE' ? 'acceptable' : 'not-acceptable'}`;
-
-            let warningHtml = result.warning ?
-                `<div style="color:#e67e22;font-weight:600;margin-bottom:4px;">${result.warning}</div>` : '';
-
-            const depthSource = depthZones.length > 0 ? 'kedalaman.json' : 'waypoint';
-
-            resultDiv.innerHTML = `
-                ${warningHtml}
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <span class="label">${result.shipName}</span>
-                  <span class="status-badge ${result.status === 'ACCEPTABLE' ? '' : 'danger'}">${result.status}</span>
-                </div>
-                <div class="ukc-result-grid">
-                  <div class="item"><span class="label">Dynamic Draft</span><span class="value">${result.dynamicDraft.toFixed(2)} m</span></div>
-                  <div class="item"><span class="label">UKC Required</span><span class="value">${result.ukc.toFixed(2)} m</span></div>
-                  <div class="item"><span class="label">Required Depth</span><span class="value">${result.requiredDepth.toFixed(2)} m</span></div>
-                  <div class="item"><span class="label">Available Depth</span><span class="value">${result.availableDepth.toFixed(2)} m <span style="font-size:0.6rem;color:#5a7e92;">(dari ${depthSource})</span></span></div>
-                  <div class="item" style="grid-column: span 2;border-bottom:none;font-weight:700;color:${result.safetyMargin >= 0 ? '#27ae60' : '#e74c3c'}">
-                    <span class="label">Safety Margin</span>
-                    <span class="value">${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)} m</span>
-                  </div>
-                </div>
-                <div class="ukc-footer-note">
-                  <i class="fas fa-info-circle"></i> Env: ${environment} | Draft: ${result.staticDraft.toFixed(2)}m | Trim/Listing: ${result.maxDraftFromTrimListing.toFixed(2)}m | Squat: ${result.squat.toFixed(2)}m | Wave: ${result.waveMotion.toFixed(2)}m
-                </div>
-              `;
-
-            setStatus(`UKC: ${result.status} (Margin: ${result.safetyMargin >= 0 ? '+' : ''}${result.safetyMargin.toFixed(2)}m)`,
-                result.status === 'ACCEPTABLE' ? '#27ae60' : '#e74c3c');
-            setInfo(
-                `UKC Analysis: ${result.status} | Required: ${result.requiredDepth.toFixed(2)}m | Available: ${result.availableDepth.toFixed(2)}m (dari ${depthSource})`
-                );
-        }
-
-        function clearUkcResult() {
-            document.getElementById('ukcResult').style.display = 'none';
-            document.getElementById('ukcResult').className = 'ukc-result';
-            document.getElementById('ukcResult').innerHTML = '';
-            lastUkcResult = null;
-            ukcInputs.waterDepth = 0;
-            setStatus("UKC dibersihkan", "#447799");
-            setInfo("UKC result cleared.");
-        }
 
         // ============================================================
         // EVENT LISTENERS
