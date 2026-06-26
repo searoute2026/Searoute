@@ -1,0 +1,340 @@
+{
+  "data": [
+    {
+      "bulan": 1,
+      "minggu": 1,
+      "hsig_avg": 0.09855,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.19695
+    },
+    {
+      "bulan": 1,
+      "minggu": 2,
+      "hsig_avg": 0.12043,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.24071
+    },
+    {
+      "bulan": 1,
+      "minggu": 3,
+      "hsig_avg": 0.13812,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.27673
+    },
+    {
+      "bulan": 1,
+      "minggu": 4,
+      "hsig_avg": 0.14320,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.28213
+    },
+    {
+      "bulan": 2,
+      "minggu": 1,
+      "hsig_avg": 0.35178,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.58560
+    },
+    {
+      "bulan": 2,
+      "minggu": 2,
+      "hsig_avg": 0.32115,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.53647
+    },
+    {
+      "bulan": 2,
+      "minggu": 3,
+      "hsig_avg": 0.28534,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.47607
+    },
+    {
+      "bulan": 2,
+      "minggu": 4,
+      "hsig_avg": 0.27719,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46152
+    },
+    {
+      "bulan": 3,
+      "minggu": 1,
+      "hsig_avg": 0.26572,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44043
+    },
+    {
+      "bulan": 3,
+      "minggu": 2,
+      "hsig_avg": 0.27661,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46236
+    },
+    {
+      "bulan": 3,
+      "minggu": 3,
+      "hsig_avg": 0.29655,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49603
+    },
+    {
+      "bulan": 3,
+      "minggu": 4,
+      "hsig_avg": 0.30386,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50679
+    },
+    {
+      "bulan": 4,
+      "minggu": 1,
+      "hsig_avg": 0.26636,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44280
+    },
+    {
+      "bulan": 4,
+      "minggu": 2,
+      "hsig_avg": 0.26734,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44571
+    },
+    {
+      "bulan": 4,
+      "minggu": 3,
+      "hsig_avg": 0.27362,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.45629
+    },
+    {
+      "bulan": 4,
+      "minggu": 4,
+      "hsig_avg": 0.26538,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44235
+    },
+    {
+      "bulan": 5,
+      "minggu": 1,
+      "hsig_avg": 0.27541,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.45944
+    },
+    {
+      "bulan": 5,
+      "minggu": 2,
+      "hsig_avg": 0.26609,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44325
+    },
+    {
+      "bulan": 5,
+      "minggu": 3,
+      "hsig_avg": 0.27931,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46699
+    },
+    {
+      "bulan": 5,
+      "minggu": 4,
+      "hsig_avg": 0.27818,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46347
+    },
+    {
+      "bulan": 6,
+      "minggu": 1,
+      "hsig_avg": 0.27985,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46685
+    },
+    {
+      "bulan": 6,
+      "minggu": 2,
+      "hsig_avg": 0.30132,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50275
+    },
+    {
+      "bulan": 6,
+      "minggu": 3,
+      "hsig_avg": 0.30328,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50661
+    },
+    {
+      "bulan": 6,
+      "minggu": 4,
+      "hsig_avg": 0.30515,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50897
+    },
+    {
+      "bulan": 7,
+      "minggu": 1,
+      "hsig_avg": 0.30146,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50386
+    },
+    {
+      "bulan": 7,
+      "minggu": 2,
+      "hsig_avg": 0.30397,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50791
+    },
+    {
+      "bulan": 7,
+      "minggu": 3,
+      "hsig_avg": 0.28785,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.48083
+    },
+    {
+      "bulan": 7,
+      "minggu": 4,
+      "hsig_avg": 0.29592,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49371
+    },
+    {
+      "bulan": 8,
+      "minggu": 1,
+      "hsig_avg": 0.31476,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.52597
+    },
+    {
+      "bulan": 8,
+      "minggu": 2,
+      "hsig_avg": 0.32077,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.53605
+    },
+    {
+      "bulan": 8,
+      "minggu": 3,
+      "hsig_avg": 0.31770,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.53159
+    },
+    {
+      "bulan": 8,
+      "minggu": 4,
+      "hsig_avg": 0.29956,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49710
+    },
+    {
+      "bulan": 9,
+      "minggu": 1,
+      "hsig_avg": 0.32865,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.54883
+    },
+    {
+      "bulan": 9,
+      "minggu": 2,
+      "hsig_avg": 0.29622,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49399
+    },
+    {
+      "bulan": 9,
+      "minggu": 3,
+      "hsig_avg": 0.31568,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.52666
+    },
+    {
+      "bulan": 9,
+      "minggu": 4,
+      "hsig_avg": 0.30778,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.51341
+    },
+    {
+      "bulan": 10,
+      "minggu": 1,
+      "hsig_avg": 0.29391,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49086
+    },
+    {
+      "bulan": 10,
+      "minggu": 2,
+      "hsig_avg": 0.30459,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50736
+    },
+    {
+      "bulan": 10,
+      "minggu": 3,
+      "hsig_avg": 0.30373,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.50695
+    },
+    {
+      "bulan": 10,
+      "minggu": 4,
+      "hsig_avg": 0.27461,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.45747
+    },
+    {
+      "bulan": 11,
+      "minggu": 1,
+      "hsig_avg": 0.26840,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.44787
+    },
+    {
+      "bulan": 11,
+      "minggu": 2,
+      "hsig_avg": 0.28222,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.47138
+    },
+    {
+      "bulan": 11,
+      "minggu": 3,
+      "hsig_avg": 0.27290,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.45513
+    },
+    {
+      "bulan": 11,
+      "minggu": 4,
+      "hsig_avg": 0.27072,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.45095
+    },
+    {
+      "bulan": 12,
+      "minggu": 1,
+      "hsig_avg": 0.27589,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.46047
+    },
+    {
+      "bulan": 12,
+      "minggu": 2,
+      "hsig_avg": 0.29787,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49680
+    },
+    {
+      "bulan": 12,
+      "minggu": 3,
+      "hsig_avg": 0.30560,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.51017
+    },
+    {
+      "bulan": 12,
+      "minggu": 4,
+      "hsig_avg": 0.29646,
+      "hsig_scale": "Smooth",
+      "hmax_avg": 0.49503
+    }
+  ]
+}
