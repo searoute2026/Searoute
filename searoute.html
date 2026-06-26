@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        /* ... semua style tetap sama ... */
         * {
             margin: 0;
             padding: 0;
@@ -210,6 +211,14 @@
             outline: none;
             border-color: #249bc7;
             box-shadow: 0 0 0 2px rgba(36, 155, 199, 0.1);
+        }
+        .flex-row select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23447e9e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 32px;
+            cursor: pointer;
         }
         .btn-icon {
             background: #f0f6fc;
@@ -567,7 +576,6 @@
             padding-top: 6px;
         }
 
-        /* Segmen UKC Result Panel */
         .ukc-segmen-result {
             background: #f7fbfe;
             border-radius: 16px;
@@ -995,6 +1003,71 @@
         .route-legend .legend-text {
             color: #333;
         }
+
+        /* Wave selector styling */
+        .wave-selector-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .wave-selector-group select {
+            flex: 1;
+            min-width: 60px;
+            background: white;
+            border: 1px solid #d4e2ec;
+            padding: 8px 10px;
+            border-radius: 48px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: #144f68;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23447e9e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+            cursor: pointer;
+        }
+        .wave-selector-group select:focus {
+            outline: none;
+            border-color: #249bc7;
+        }
+        .wave-info-display {
+            background: #e8f4fc;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 0.65rem;
+            color: #016e8c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .wave-info-display .wave-label {
+            color: #5a7e92;
+        }
+        .wave-info-display .wave-value {
+            font-weight: 700;
+            color: #1f7e9e;
+        }
+        .wave-auto-btn {
+            background: #d4eaf3;
+            border: 1px solid #cde0ec;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            color: #196f8f;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .wave-auto-btn:active {
+            background: #c0dde8;
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
@@ -1119,8 +1192,43 @@
                     <input type="number" id="ukcListingDraft" placeholder="Listing (m)" value="0" step="0.1" min="0">
                     <input type="number" id="ukcSquat" placeholder="Squat (m)" value="0" step="0.1" min="0">
                 </div>
-                <div class="flex-row">
-                    <input type="number" id="ukcWaveMotion" placeholder="Wave (m)" value="0" step="0.1" min="0">
+                <!-- Wave selection area - menggantikan input wave manual -->
+                <div class="input-label" style="font-size:0.6rem; color:#3e7e9e; margin-top:4px; margin-bottom:2px;">
+                    <i class="fas fa-water"></i> DATA GELOMBANG (WAVE)
+                </div>
+                <div class="wave-selector-group">
+                    <select id="waveMonthSelect">
+                        <option value="">Bulan</option>
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                    <select id="waveWeekSelect">
+                        <option value="">Minggu</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                    <button class="wave-auto-btn" id="waveApplyBtn"><i class="fas fa-sync-alt"></i> Terapkan</button>
+                </div>
+                <div class="wave-info-display" id="waveInfoDisplay">
+                    <span><span class="wave-label">Hsig:</span> <span class="wave-value" id="waveHsigDisplay">-</span> m</span>
+                    <span><span class="wave-label">Hmax:</span> <span class="wave-value" id="waveHmaxDisplay">-</span> m</span>
+                    <span><span class="wave-label">Skala:</span> <span class="wave-value" id="waveScaleDisplay">-</span></span>
+                    <span style="font-size:0.55rem; color:#5a7e92; margin-left:auto;">Sumber: wave.json</span>
+                </div>
+                <div class="flex-row" style="margin-top:4px;">
+                    <input type="number" id="ukcWaveMotion" placeholder="Wave (m)" value="0" step="0.1" min="0" style="display:none;">
                     <select id="ukcEnvironment" style="flex:1; background:white; border:1px solid #d4e2ec; border-radius:48px; padding:10px 12px; font-size:0.7rem; color:#144f68;">
                         <option value="Port Approach">Port Approach</option>
                         <option value="Coastal Water">Coastal Water</option>
@@ -1138,7 +1246,6 @@
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
 
-            <!-- UKC Segmen Result Panel -->
             <div class="ukc-segmen-result" id="ukcSegmenResult">
                 <div class="segmen-header">
                     <i class="fas fa-layer-group"></i>
@@ -1207,7 +1314,66 @@
         }).addTo(map);
 
         // ============================================================
-        // SEGMEN DATA (3 Segmen dengan polygon masing-masing)
+        // DATA GELOMBANG (WAVE)
+        // ============================================================
+        let waveData = [];
+
+        async function loadWaveData() {
+            try {
+                const res = await fetch('wave.json');
+                const data = await res.json();
+                waveData = data.data || [];
+                if (waveData.length > 0) {
+                    setStatus(`🌊 ${waveData.length} data gelombang dimuat`, "#2c7a4d");
+                    setInfo("Data gelombang dari wave.json tersedia untuk UKC");
+                } else {
+                    setStatus("⚠️ Tidak ada data gelombang", "#f39c12");
+                }
+            } catch (e) {
+                console.log("wave.json tidak ditemukan atau error:", e);
+                waveData = [];
+                setStatus("⚠️ wave.json tidak ditemukan", "#f39c12");
+            }
+        }
+
+        function getWaveData(bulan, minggu) {
+            if (!waveData.length) return null;
+            const found = waveData.find(w => w.bulan === parseInt(bulan) && w.minggu === parseInt(minggu));
+            return found || null;
+        }
+
+        function applyWaveData() {
+            const bulan = document.getElementById('waveMonthSelect').value;
+            const minggu = document.getElementById('waveWeekSelect').value;
+
+            if (!bulan || !minggu) {
+                alert('Pilih bulan dan minggu terlebih dahulu!');
+                return;
+            }
+
+            const data = getWaveData(bulan, minggu);
+            if (!data) {
+                alert(`Data gelombang untuk bulan ${bulan} minggu ${minggu} tidak ditemukan!`);
+                return;
+            }
+
+            // Set nilai wave ke input field (hidden) dan tampilkan di display
+            const waveMotionInput = document.getElementById('ukcWaveMotion');
+            waveMotionInput.value = data.hsig_avg.toFixed(4);
+
+            document.getElementById('waveHsigDisplay').textContent = data.hsig_avg.toFixed(4);
+            document.getElementById('waveHmaxDisplay').textContent = data.hmax_avg.toFixed(4);
+            document.getElementById('waveScaleDisplay').textContent = data.hsig_scale || '-';
+
+            setStatus(`🌊 Wave applied: Hsig=${data.hsig_avg.toFixed(4)}m (Bulan ${bulan}, Minggu ${minggu})`, "#2c7a4d");
+            setInfo(`Data gelombang: Hsig ${data.hsig_avg.toFixed(4)}m, Hmax ${data.hmax_avg.toFixed(4)}m, ${data.hsig_scale}`);
+
+            // Update UKC inputs
+            ukcInputs.waveMotion = parseFloat(waveMotionInput.value) || 0;
+        }
+
+        // ============================================================
+        // SEGMEN DATA
         // ============================================================
         const SEGMEN_DATA = {
             "segmen": [
@@ -1241,7 +1407,6 @@
             ]
         };
 
-        // Warna untuk setiap segmen
         const SEGMENT_COLORS = {
             'Segmen 1': '#FF0000',
             'Segmen 2': '#8B008B',
@@ -1626,11 +1791,9 @@
             };
         }
 
-        // Fungsi untuk menghitung UKC per segmen
         function calculateUkcPerSegmen() {
             const segmenResults = [];
             
-            // Ambil input UKC
             const shipName = document.getElementById('ukcShipName').value || 'Unknown';
             const length = parseFloat(document.getElementById('ukcLength').value) || 0;
             const breadth = parseFloat(document.getElementById('ukcBreadth').value) || 0;
@@ -1646,9 +1809,7 @@
                 return;
             }
 
-            // Untuk setiap segmen, hitung UKC berdasarkan kedalaman di polygon segmen
             for (const seg of SEGMEN_DATA.segmen) {
-                // Ambil titik tengah polygon sebagai referensi kedalaman
                 let avgLat = 0, avgLng = 0;
                 for (const p of seg.polygon) {
                     avgLat += p[0];
@@ -1657,10 +1818,8 @@
                 avgLat /= seg.polygon.length;
                 avgLng /= seg.polygon.length;
 
-                // Cari kedalaman di titik tengah segmen
                 let waterDepth = getDepthAt(avgLat, avgLng);
                 if (waterDepth === DEPTH_NOT_FOUND) {
-                    // Coba cari kedalaman terdekat dari waypoint
                     let minDist = Infinity;
                     let nearestDepth = DEPTH_NOT_FOUND;
                     for (const wp of waypoints) {
@@ -1675,7 +1834,6 @@
                     }
                 }
 
-                // Hitung UKC untuk segmen ini
                 const inputs = {
                     shipName: shipName,
                     length: length,
@@ -1747,7 +1905,6 @@
                 `;
             }
 
-            // Summary
             const totalSegments = results.length;
             const acceptedCount = results.filter(r => r.result.status === 'ACCEPTABLE').length;
             
@@ -1917,7 +2074,7 @@
                   </div>
                 </div>
                 <div class="ukc-footer-note">
-                  <i class="fas fa-info-circle"></i> Env: ${environment} | Draft: ${result.staticDraft.toFixed(2)}m | Trim/Listing: ${result.maxDraftFromTrimListing.toFixed(2)}m | Squat: ${result.squat.toFixed(2)}m | Wave: ${result.waveMotion.toFixed(2)}m
+                  <i class="fas fa-info-circle"></i> Env: ${environment} | Draft: ${result.staticDraft.toFixed(2)}m | Trim/Listing: ${result.maxDraftFromTrimListing.toFixed(2)}m | Squat: ${result.squat.toFixed(2)}m | Wave: ${result.waveMotion.toFixed(4)}m (dari wave.json)
                 </div>
             `;
 
@@ -1927,7 +2084,6 @@
                 `UKC Analysis: ${result.status} | Required: ${result.requiredDepth.toFixed(2)}m | Available: ${result.availableDepth.toFixed(2)}m (dari ${depthSource})`
                 );
 
-            // Hitung UKC per segmen
             calculateUkcPerSegmen();
         }
 
@@ -2775,9 +2931,11 @@
                 lines.push(`   UKC required  : ${lastUkcResult.ukc.toFixed(2)}m`);
                 lines.push(`   Kedalaman req : ${lastUkcResult.requiredDepth.toFixed(2)}m`);
                 lines.push(`   Status        : ${lastUkcResult.status}`);
+                if (lastUkcResult.waveMotion) {
+                    lines.push(`   Wave (Hsig)    : ${lastUkcResult.waveMotion.toFixed(4)}m (dari wave.json)`);
+                }
             }
 
-            // Tambahkan info segmen
             if (segmenUkcResults.length > 0) {
                 lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
                 lines.push(`📊 UKC PER SEGMEN:`);
@@ -3182,6 +3340,9 @@
         document.getElementById('calculateUkcBtn').addEventListener('click', handleUkcCalculation);
         document.getElementById('clearUkcBtn').addEventListener('click', clearUkcResult);
         document.getElementById('getDepthFromWaypointBtn').addEventListener('click', getDepthFromSelectedWaypoint);
+        
+        // Wave event listeners
+        document.getElementById('waveApplyBtn').addEventListener('click', applyWaveData);
 
         document.getElementById('vesselSelect').addEventListener('change', function() {
             const idx = parseInt(this.value);
@@ -3259,6 +3420,9 @@
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
             "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan", "#2f9e6b");
+        
+        // Load wave data
+        loadWaveData();
     </script>
 </body>
 </html>
