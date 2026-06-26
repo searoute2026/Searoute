@@ -1,7 +1,3 @@
-# ============================================
-# MARINE ROUTER INDONESIA - JULIA VERSION
-# Complete Navigation System with Julia
-# ============================================
 
 module MarineRouter
 
