@@ -1,0 +1,15 @@
+[package]
+name = "debit_air"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = "1.0"
+
+[lib]
+name = "debit_air"
+path = "src/lib.rs"
+
+[[bin]]
+name = "debit_air"
+path = "src/main.rs"
