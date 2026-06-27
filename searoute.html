@@ -1208,40 +1208,6 @@
                 <button class="route-mode-btn active" id="routeModeAutoBtn"><i class="fas fa-magic"></i> AUTO</button>
             </div>
 
-            <!-- MEASUREMENT PANEL -->
-            <button class="btn-measure" id="measureToggleBtn"><i class="fas fa-ruler-combined"></i> UKUR JARAK (2 klik)</button>
-            
-            <div class="measure-panel" id="measurePanel">
-                <div class="measure-header">
-                    <i class="fas fa-ruler"></i>
-                    <span>PENGUKURAN JARAK</span>
-                    <span class="measure-badge">2 TITIK</span>
-                </div>
-                <div class="measure-point">
-                    <span class="point-label"><i class="fas fa-circle" style="color:#8e44ad;"></i> Titik 1</span>
-                    <span class="point-coord" id="measurePoint1">-</span>
-                </div>
-                <div class="measure-point">
-                    <span class="point-label"><i class="fas fa-circle" style="color:#c0392b;"></i> Titik 2</span>
-                    <span class="point-coord" id="measurePoint2">-</span>
-                </div>
-                <div class="measure-result" id="measureResult">
-                    <div class="item"><span class="label">Jarak</span><span class="value" id="measureDistance">-</span></div>
-                    <div class="item"><span class="label">Jarak (NM)</span><span class="value" id="measureDistanceNm">-</span></div>
-                    <div class="item" style="grid-column: span 2; border-top: 1px solid #d4e2ec; padding-top: 6px; margin-top: 4px;">
-                        <span class="label">Arah (Bearing)</span>
-                        <span class="value highlight" id="measureBearing">-</span>
-                    </div>
-                    <div class="item" style="grid-column: span 2;">
-                        <span class="label">Midpoint</span>
-                        <span class="value" id="measureMidpoint" style="font-size:0.65rem; color:#5a7e92;">-</span>
-                    </div>
-                </div>
-                <button class="btn-icon" id="clearMeasureBtn" style="width:100%; justify-content:center; margin-top:6px;">
-                    <i class="fas fa-undo-alt"></i> Hapus Pengukuran
-                </button>
-            </div>
-
             <div id="autoModePanel">
                 <div class="input-group">
                     <div class="input-label"><i class="fas fa-flag-checkered"></i> PELABUHAN TUJUAN</div>
@@ -1329,7 +1295,7 @@
             <div class="ukc-panel" id="ukcPanel">
                 <div class="ukc-header">
                     <i class="fas fa-water"></i>
-                    <span>UNDER KEEL CLEARANCE</span>
+                    <span>Module</span>
                     <span class="ukc-badge">UKC</span>
                 </div>
                 <div class="flex-row">
@@ -1435,6 +1401,40 @@
                 <div class="info-tip" style="margin-top:8px; font-size:0.6rem;">
                     <i class="fas fa-database"></i> Posisi kapal menjadi START
                 </div>
+            </div>
+            
+               <!-- MEASUREMENT PANEL -->
+            <button class="btn-measure" id="measureToggleBtn"><i class="fas fa-ruler-combined"></i> UKUR JARAK (2 klik)</button>
+            
+            <div class="measure-panel" id="measurePanel">
+                <div class="measure-header">
+                    <i class="fas fa-ruler"></i>
+                    <span>PENGUKURAN JARAK</span>
+                    <span class="measure-badge">2 TITIK</span>
+                </div>
+                <div class="measure-point">
+                    <span class="point-label"><i class="fas fa-circle" style="color:#8e44ad;"></i> Titik 1</span>
+                    <span class="point-coord" id="measurePoint1">-</span>
+                </div>
+                <div class="measure-point">
+                    <span class="point-label"><i class="fas fa-circle" style="color:#c0392b;"></i> Titik 2</span>
+                    <span class="point-coord" id="measurePoint2">-</span>
+                </div>
+                <div class="measure-result" id="measureResult">
+                    <div class="item"><span class="label">Jarak</span><span class="value" id="measureDistance">-</span></div>
+                    <div class="item"><span class="label">Jarak (NM)</span><span class="value" id="measureDistanceNm">-</span></div>
+                    <div class="item" style="grid-column: span 2; border-top: 1px solid #d4e2ec; padding-top: 6px; margin-top: 4px;">
+                        <span class="label">Arah (Bearing)</span>
+                        <span class="value highlight" id="measureBearing">-</span>
+                    </div>
+                    <div class="item" style="grid-column: span 2;">
+                        <span class="label">Midpoint</span>
+                        <span class="value" id="measureMidpoint" style="font-size:0.65rem; color:#5a7e92;">-</span>
+                    </div>
+                </div>
+                <button class="btn-icon" id="clearMeasureBtn" style="width:100%; justify-content:center; margin-top:6px;">
+                    <i class="fas fa-undo-alt"></i> Hapus Pengukuran
+                </button>
             </div>
 
             <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE</button>
