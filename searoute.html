@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        /* ... semua style tetap sama ... */
         * {
             margin: 0;
             padding: 0;
@@ -279,6 +278,30 @@
             background: #ecf5fa;
             transform: scale(0.98);
         }
+        .btn-measure {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            width: 100%;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
+        .btn-measure:active {
+            background: #6c3483;
+            transform: scale(0.98);
+        }
+        .btn-measure.active {
+            background: #c0392b;
+        }
         .telemetry-card {
             background: linear-gradient(135deg, #f0f9ff 0%, #e8f3fa 100%);
             border-radius: 20px;
@@ -443,6 +466,85 @@
         .btn-icon,
         .search-result-item {
             touch-action: manipulation;
+        }
+
+        /* Measurement panel */
+        .measure-panel {
+            background: linear-gradient(135deg, #f3e8f8 0%, #e8d5f0 100%);
+            border-radius: 16px;
+            padding: 12px;
+            margin: 12px 0;
+            border: 2px solid #8e44ad;
+            display: none;
+        }
+        .measure-panel .measure-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .measure-panel .measure-header i {
+            color: #8e44ad;
+            font-size: 1.1rem;
+        }
+        .measure-panel .measure-header span {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #6c3483;
+        }
+        .measure-panel .measure-header .measure-badge {
+            background: #8e44ad;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        .measure-point {
+            background: white;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #8e44ad;
+        }
+        .measure-point .point-label {
+            font-weight: 600;
+            color: #2d6d89;
+        }
+        .measure-point .point-coord {
+            font-family: monospace;
+            color: #5a7e92;
+            font-size: 0.65rem;
+        }
+        .measure-result {
+            background: #eaf2f8;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+            font-size: 0.7rem;
+        }
+        .measure-result .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+        .measure-result .item .label {
+            color: #5a7e92;
+        }
+        .measure-result .item .value {
+            font-weight: 700;
+            color: #8e44ad;
+        }
+        .measure-result .item .value.highlight {
+            color: #27ae60;
         }
 
         .ukc-panel {
@@ -1004,7 +1106,6 @@
             color: #333;
         }
 
-        /* Wave selector styling */
         .wave-selector-group {
             display: flex;
             gap: 6px;
@@ -1068,6 +1169,24 @@
             background: #c0dde8;
             transform: scale(0.97);
         }
+
+        /* Measurement markers on map */
+        .measure-marker-1 {
+            background: #8e44ad;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(142, 68, 173, 0.6);
+        }
+        .measure-marker-2 {
+            background: #c0392b;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(192, 57, 43, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -1087,6 +1206,40 @@
             <div class="route-mode-selector">
                 <button class="route-mode-btn" id="routeModeManualBtn"><i class="fas fa-hand-pointer"></i> MANUAL</button>
                 <button class="route-mode-btn active" id="routeModeAutoBtn"><i class="fas fa-magic"></i> AUTO</button>
+            </div>
+
+            <!-- MEASUREMENT PANEL -->
+            <button class="btn-measure" id="measureToggleBtn"><i class="fas fa-ruler-combined"></i> UKUR JARAK (2 klik)</button>
+            
+            <div class="measure-panel" id="measurePanel">
+                <div class="measure-header">
+                    <i class="fas fa-ruler"></i>
+                    <span>PENGUKURAN JARAK</span>
+                    <span class="measure-badge">2 TITIK</span>
+                </div>
+                <div class="measure-point">
+                    <span class="point-label"><i class="fas fa-circle" style="color:#8e44ad;"></i> Titik 1</span>
+                    <span class="point-coord" id="measurePoint1">-</span>
+                </div>
+                <div class="measure-point">
+                    <span class="point-label"><i class="fas fa-circle" style="color:#c0392b;"></i> Titik 2</span>
+                    <span class="point-coord" id="measurePoint2">-</span>
+                </div>
+                <div class="measure-result" id="measureResult">
+                    <div class="item"><span class="label">Jarak</span><span class="value" id="measureDistance">-</span></div>
+                    <div class="item"><span class="label">Jarak (NM)</span><span class="value" id="measureDistanceNm">-</span></div>
+                    <div class="item" style="grid-column: span 2; border-top: 1px solid #d4e2ec; padding-top: 6px; margin-top: 4px;">
+                        <span class="label">Arah (Bearing)</span>
+                        <span class="value highlight" id="measureBearing">-</span>
+                    </div>
+                    <div class="item" style="grid-column: span 2;">
+                        <span class="label">Midpoint</span>
+                        <span class="value" id="measureMidpoint" style="font-size:0.65rem; color:#5a7e92;">-</span>
+                    </div>
+                </div>
+                <button class="btn-icon" id="clearMeasureBtn" style="width:100%; justify-content:center; margin-top:6px;">
+                    <i class="fas fa-undo-alt"></i> Hapus Pengukuran
+                </button>
             </div>
 
             <div id="autoModePanel">
@@ -1192,7 +1345,6 @@
                     <input type="number" id="ukcListingDraft" placeholder="Listing (m)" value="0" step="0.1" min="0">
                     <input type="number" id="ukcSquat" placeholder="Squat (m)" value="0" step="0.1" min="0">
                 </div>
-                <!-- Wave selection area - menggantikan input wave manual -->
                 <div class="input-label" style="font-size:0.6rem; color:#3e7e9e; margin-top:4px; margin-bottom:2px;">
                     <i class="fas fa-water"></i> DATA GELOMBANG (WAVE)
                 </div>
@@ -1297,7 +1449,7 @@
                 <div class="response-body" id="responseBody">Siap membantu navigasi Anda.</div>
             </div>
 
-            <div class="info-tip" id="infoBox"><i class="fas fa-lightbulb"></i> Arahkan kursor ke titik biru untuk melihat koordinat waypoint & kedalaman.</div>
+            <div class="info-tip" id="infoBox"><i class="fas fa-lightbulb"></i> Klik "Ukur Jarak" lalu klik 2 titik di peta.</div>
         </div>
     </div>
 
@@ -1312,6 +1464,168 @@
             zoomOffset: -1,
             attribution: ''
         }).addTo(map);
+
+        // ============================================================
+        // MEASUREMENT MODULE
+        // ============================================================
+        let measureModeActive = false;
+        let measurePoints = [];
+        let measureMarkers = [];
+        let measureLine = null;
+        let measureTooltip = null;
+
+        function distKm(a, b) { 
+            const R = 6371;
+            const dLat = (b[0] - a[0]) * Math.PI / 180,
+                dLng = (b[1] - a[1]) * Math.PI / 180;
+            const lat1 = a[0] * Math.PI / 180,
+                lat2 = b[0] * Math.PI / 180;
+            const s = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+        }
+
+        function bearing(a, b) {
+            const lat1 = a[0] * Math.PI / 180, lat2 = b[0] * Math.PI / 180;
+            const dLng = (b[1] - a[1]) * Math.PI / 180;
+            const y = Math.sin(dLng) * Math.cos(lat2);
+            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+            let brg = Math.atan2(y, x) * 180 / Math.PI;
+            return (brg + 360) % 360;
+        }
+
+        function midpoint(a, b) {
+            const lat1 = a[0] * Math.PI / 180, lon1 = a[1] * Math.PI / 180;
+            const lat2 = b[0] * Math.PI / 180, lon2 = b[1] * Math.PI / 180;
+            const dLon = lon2 - lon1;
+            const Bx = Math.cos(lat2) * Math.cos(dLon);
+            const By = Math.cos(lat2) * Math.sin(dLon);
+            const lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
+            const lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
+            return [lat3 * 180 / Math.PI, lon3 * 180 / Math.PI];
+        }
+
+        function clearMeasurements() {
+            for (const m of measureMarkers) {
+                map.removeLayer(m);
+            }
+            measureMarkers = [];
+            if (measureLine) {
+                map.removeLayer(measureLine);
+                measureLine = null;
+            }
+            if (measureTooltip) {
+                map.removeLayer(measureTooltip);
+                measureTooltip = null;
+            }
+            measurePoints = [];
+            document.getElementById('measurePoint1').textContent = '-';
+            document.getElementById('measurePoint2').textContent = '-';
+            document.getElementById('measureDistance').textContent = '-';
+            document.getElementById('measureDistanceNm').textContent = '-';
+            document.getElementById('measureBearing').textContent = '-';
+            document.getElementById('measureMidpoint').textContent = '-';
+            document.getElementById('measurePanel').style.display = 'none';
+            document.getElementById('measureToggleBtn').classList.remove('active');
+            measureModeActive = false;
+            setStatus("Pengukuran dihapus", "#447799");
+        }
+
+        function updateMeasurementUI() {
+            const panel = document.getElementById('measurePanel');
+            panel.style.display = 'block';
+
+            if (measurePoints.length >= 1) {
+                const p1 = measurePoints[0];
+                document.getElementById('measurePoint1').textContent = `${p1[0].toFixed(6)}°, ${p1[1].toFixed(6)}°`;
+            }
+
+            if (measurePoints.length >= 2) {
+                const p1 = measurePoints[0], p2 = measurePoints[1];
+                document.getElementById('measurePoint2').textContent = `${p2[0].toFixed(6)}°, ${p2[1].toFixed(6)}°`;
+                
+                const dist = distKm(p1, p2);
+                const distNm = dist / 1.852;
+                const brg = bearing(p1, p2);
+                const mid = midpoint(p1, p2);
+                
+                document.getElementById('measureDistance').textContent = `${dist.toFixed(3)} km`;
+                document.getElementById('measureDistanceNm').textContent = `${distNm.toFixed(3)} NM`;
+                document.getElementById('measureBearing').textContent = `${brg.toFixed(1)}°`;
+                document.getElementById('measureMidpoint').textContent = `${mid[0].toFixed(5)}°, ${mid[1].toFixed(5)}°`;
+
+                setStatus(`📏 Jarak: ${dist.toFixed(3)} km (${distNm.toFixed(3)} NM), Bearing ${brg.toFixed(1)}°`, "#8e44ad");
+                setInfo(`Pengukuran: ${dist.toFixed(3)} km antara 2 titik`);
+
+                if (measureLine) {
+                    map.removeLayer(measureLine);
+                    measureLine = null;
+                }
+                measureLine = L.polyline([p1, p2], {
+                    color: '#8e44ad',
+                    weight: 3,
+                    dashArray: '6, 6',
+                    opacity: 0.8
+                }).addTo(map);
+
+                const midLatLng = L.latLng(mid[0], mid[1]);
+                if (measureTooltip) {
+                    map.removeLayer(measureTooltip);
+                    measureTooltip = null;
+                }
+                measureTooltip = L.marker(midLatLng, {
+                    icon: L.divIcon({
+                        html: `<div style="background:#8e44ad;color:white;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${dist.toFixed(2)} km | ${brg.toFixed(1)}°</div>`,
+                        iconSize: [100, 24],
+                        iconAnchor: [50, 12]
+                    })
+                }).addTo(map);
+
+                map.fitBounds(L.latLngBounds([p1, p2]), { padding: [80, 80] });
+            }
+        }
+
+        function handleMapClickForMeasure(e) {
+            if (!measureModeActive) return;
+            const { lat, lng } = e.latlng;
+            
+            if (measurePoints.length >= 2) {
+                clearMeasurements();
+                measureModeActive = true;
+                document.getElementById('measureToggleBtn').classList.add('active');
+                setStatus("🖱️ Klik titik pertama untuk mengukur", "#8e44ad");
+                return;
+            }
+
+            measurePoints.push([lat, lng]);
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 8,
+                fillColor: measurePoints.length === 1 ? '#8e44ad' : '#c0392b',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+            
+            marker.bindTooltip(
+                measurePoints.length === 1 ? 
+                `📍 Titik 1: ${lat.toFixed(5)}, ${lng.toFixed(5)}` : 
+                `📍 Titik 2: ${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+                { permanent: false, direction: 'top', offset: [0, -10] }
+            );
+            measureMarkers.push(marker);
+
+            if (measurePoints.length === 1) {
+                setStatus(`🟣 Titik 1: ${lat.toFixed(5)}, ${lng.toFixed(5)}. Klik titik ke-2`, "#8e44ad");
+                document.getElementById('measurePoint1').textContent = `${lat.toFixed(6)}°, ${lng.toFixed(6)}°`;
+            } else if (measurePoints.length === 2) {
+                setStatus(`🔴 Titik 2: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "#c0392b");
+                updateMeasurementUI();
+                measureModeActive = false;
+                document.getElementById('measureToggleBtn').classList.remove('active');
+                setStatus(`📏 Pengukuran selesai! Jarak: ${distKm(measurePoints[0], measurePoints[1]).toFixed(3)} km`, "#8e44ad");
+            }
+        }
 
         // ============================================================
         // DATA GELOMBANG (WAVE)
@@ -1357,7 +1671,6 @@
                 return;
             }
 
-            // Set nilai wave ke input field (hidden) dan tampilkan di display
             const waveMotionInput = document.getElementById('ukcWaveMotion');
             waveMotionInput.value = data.hsig_avg.toFixed(4);
 
@@ -1368,7 +1681,6 @@
             setStatus(`🌊 Wave applied: Hsig=${data.hsig_avg.toFixed(4)}m (Bulan ${bulan}, Minggu ${minggu})`, "#2c7a4d");
             setInfo(`Data gelombang: Hsig ${data.hsig_avg.toFixed(4)}m, Hmax ${data.hmax_avg.toFixed(4)}m, ${data.hsig_scale}`);
 
-            // Update UKC inputs
             ukcInputs.waveMotion = parseFloat(waveMotionInput.value) || 0;
         }
 
@@ -1673,14 +1985,6 @@
             MAX_ITER = 250000;
 
         function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
-
-        function distKm(a, b) { const R = 6371;
-            const dLat = (b[0] - a[0]) * Math.PI / 180,
-                dLng = (b[1] - a[1]) * Math.PI / 180;
-            const lat1 = a[0] * Math.PI / 180,
-                lat2 = b[0] * Math.PI / 180;
-            const s = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-            return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s)); }
 
         function pointInPolygon(p, vs) {
             let inside = false;
@@ -3263,6 +3567,7 @@
             document.getElementById('responsePanel').style.display = 'none';
             const oldLegend = document.querySelector('.route-legend');
             if (oldLegend) oldLegend.remove();
+            clearMeasurements();
         }
 
         function setPickMode(m) { if (isRouting) return;
@@ -3365,40 +3670,82 @@
             compareRouteWithTrajectory(lastRoutePathIds);
         });
 
-        map.on('click', e => { if (!pickMode || isRouting) return; const { lat, lng } = e.latlng; if (islands.length &&
-                isBlocked(lat, lng)) { alert("❌ Titik di daratan!"); return; } if (pickMode === 'start') { start = [
-                    lat, lng
-                ]; if (startMarker) map.removeLayer(startMarker);
+        // Measurement toggle
+        document.getElementById('measureToggleBtn').addEventListener('click', function() {
+            if (measureModeActive) {
+                // Turn off measurement mode
+                measureModeActive = false;
+                this.classList.remove('active');
+                clearMeasurements();
+                setStatus("Mode pengukuran dinonaktifkan", "#447799");
+            } else {
+                // Turn on measurement mode
+                clearMeasurements();
+                measureModeActive = true;
+                this.classList.add('active');
+                document.getElementById('measurePanel').style.display = 'block';
+                setStatus("🖱️ Klik titik pertama di peta untuk mengukur jarak", "#8e44ad");
+                setInfo("Klik 2 titik di peta untuk mengukur jarak");
+            }
+        });
+
+        document.getElementById('clearMeasureBtn').addEventListener('click', function() {
+            clearMeasurements();
+            measureModeActive = false;
+            document.getElementById('measureToggleBtn').classList.remove('active');
+            document.getElementById('measurePanel').style.display = 'none';
+            setStatus("Pengukuran dihapus", "#447799");
+        });
+
+        // Map click for measurement (priority over pick mode)
+        map.on('click', function(e) {
+            // If measurement mode is active, handle measurement
+            if (measureModeActive) {
+                handleMapClickForMeasure(e);
+                return;
+            }
+            
+            // Otherwise handle pick mode
+            if (!pickMode || isRouting) return;
+            const { lat, lng } = e.latlng;
+            if (islands.length && isBlocked(lat, lng)) { alert("❌ Titik di daratan!"); return; }
+            if (pickMode === 'start') { 
+                start = [lat, lng];
+                if (startMarker) map.removeLayer(startMarker);
                 startMarker = L.marker([lat, lng], { icon: L.divIcon({ html: `<i class="fas fa-anchor" style="font-size:28px; color:#1f7e9e;"></i>`,
-                        iconSize: [28, 28], iconAnchor: [14, 28] }) }).addTo(map).bindPopup("START")
-                    .openPopup();
+                        iconSize: [28, 28], iconAnchor: [14, 28] }) }).addTo(map).bindPopup("START").openPopup();
                 document.getElementById('startLat').value = lat.toFixed(6);
                 document.getElementById('startLng').value = lng.toFixed(6);
-                setStatus(`📍 Start dari peta: ${lat.toFixed(5)}`); } else { end = [lat, lng]; if (endMarker) map
-                    .removeLayer(endMarker);
+                setStatus(`📍 Start dari peta: ${lat.toFixed(5)}`);
+            } else {
+                end = [lat, lng];
+                if (endMarker) map.removeLayer(endMarker);
                 endMarker = L.marker([lat, lng], { icon: L.divIcon({ html: `<i class="fas fa-flag-checkered" style="font-size:28px; color:#d97706;"></i>`,
-                        iconSize: [28, 28], iconAnchor: [14, 28] }) }).addTo(map).bindPopup("FINISH")
-                    .openPopup(); if (routeMode === "MANUAL") { document.getElementById('endLat').value = lat
-                        .toFixed(6);
+                        iconSize: [28, 28], iconAnchor: [14, 28] }) }).addTo(map).bindPopup("FINISH").openPopup();
+                if (routeMode === "MANUAL") { document.getElementById('endLat').value = lat.toFixed(6);
                     document.getElementById('endLng').value = lng.toFixed(6); }
-                setStatus(`🏁 Finish dari peta: ${lat.toFixed(5)}`); } if (routeLine) { 
-                    if (typeof routeLine.remove === 'function') {
-                        routeLine.remove();
-                    } else if (routeLine._layers) {
-                        for (const line of routeLine._layers) {
-                            map.removeLayer(line);
-                        }
-                    } else {
-                        map.removeLayer(routeLine);
+                setStatus(`🏁 Finish dari peta: ${lat.toFixed(5)}`);
+            }
+            if (routeLine) { 
+                if (typeof routeLine.remove === 'function') {
+                    routeLine.remove();
+                } else if (routeLine._layers) {
+                    for (const line of routeLine._layers) {
+                        map.removeLayer(line);
                     }
-                    routeLine = null;
-                    currentRouteCoords = [];
-                    stopAnimation(); if (shipMarker) map.removeLayer(shipMarker);
-                    clearWaypointMarkers(); 
-                    const oldLegend = document.querySelector('.route-legend');
-                    if (oldLegend) oldLegend.remove();
+                } else {
+                    map.removeLayer(routeLine);
                 }
-            pickMode = null; });
+                routeLine = null;
+                currentRouteCoords = [];
+                stopAnimation();
+                if (shipMarker) map.removeLayer(shipMarker);
+                clearWaypointMarkers();
+                const oldLegend = document.querySelector('.route-legend');
+                if (oldLegend) oldLegend.remove();
+            }
+            pickMode = null;
+        });
 
         const nav = document.getElementById('marineNav'),
             toggleNavBtn = document.getElementById('navToggleBtn'),
@@ -3419,7 +3766,7 @@
         setRouteMode("AUTO");
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
-            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Gunakan panel UKC untuk analisis keselamatan", "#2f9e6b");
+            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Klik 'Ukur Jarak' untuk mengukur 2 titik di peta.", "#2f9e6b");
         
         // Load wave data
         loadWaveData();
