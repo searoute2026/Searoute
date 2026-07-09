@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        /* ... (semua style sebelumnya tetap sama) ... */
         * {
             margin: 0;
             padding: 0;
@@ -468,7 +469,6 @@
             touch-action: manipulation;
         }
 
-        /* Measurement panel */
         .measure-panel {
             background: linear-gradient(135deg, #f3e8f8 0%, #e8d5f0 100%);
             border-radius: 16px;
@@ -1170,7 +1170,6 @@
             transform: scale(0.97);
         }
 
-        /* Measurement markers on map */
         .measure-marker-1 {
             background: #8e44ad;
             border-radius: 50%;
@@ -1188,31 +1187,32 @@
             box-shadow: 0 0 10px rgba(192, 57, 43, 0.6);
         }
 
-        /* ===== PROBABILITY KNOT PANEL ===== */
-        .prob-knot-panel {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e3f0fa 100%);
+        /* ====== KNOT PROBABILITY PANEL ====== */
+        .knot-probability-panel {
+            background: linear-gradient(135deg, #e8f0fe 0%, #d4e8f7 100%);
             border-radius: 16px;
             padding: 14px;
             margin: 12px 0;
-            border: 2px solid #2ecc71;
+            border: 2px solid #1f7e9e;
+            display: none;
         }
-        .prob-knot-panel .prob-header {
+        .knot-probability-panel .knot-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
-        .prob-knot-panel .prob-header i {
-            color: #2ecc71;
-            font-size: 1.2rem;
+        .knot-probability-panel .knot-header i {
+            color: #1f7e9e;
+            font-size: 1.1rem;
         }
-        .prob-knot-panel .prob-header span {
+        .knot-probability-panel .knot-header span {
             font-weight: 700;
-            font-size: 0.85rem;
-            color: #1a6e3e;
+            font-size: 0.8rem;
+            color: #016e8c;
         }
-        .prob-knot-panel .prob-header .prob-badge {
-            background: #2ecc71;
+        .knot-probability-panel .knot-header .knot-badge {
+            background: #1f7e9e;
             color: white;
             padding: 2px 10px;
             border-radius: 40px;
@@ -1220,168 +1220,122 @@
             font-weight: 600;
             margin-left: auto;
         }
-        .prob-knot-panel .prob-selector {
+        .knot-search-container {
             display: flex;
             gap: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+            margin-bottom: 12px;
         }
-        .prob-knot-panel .prob-selector select {
+        .knot-search-container input {
             flex: 1;
-            min-width: 80px;
-            background: white;
+            padding: 10px 14px;
             border: 1px solid #d4e2ec;
-            padding: 8px 12px;
             border-radius: 48px;
-            font-size: 0.7rem;
-            font-family: monospace;
+            font-size: 0.8rem;
+            background: white;
             color: #144f68;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23447e9e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 28px;
-            cursor: pointer;
         }
-        .prob-knot-panel .prob-selector select:focus {
+        .knot-search-container input:focus {
             outline: none;
             border-color: #249bc7;
+            box-shadow: 0 0 0 2px rgba(36, 155, 199, 0.1);
         }
-        .prob-knot-panel .prob-selector button {
-            padding: 8px 16px;
-            border-radius: 40px;
-            border: none;
-            background: #2ecc71;
+        .knot-search-container button {
+            background: #1f7e9e;
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 48px;
             font-weight: 600;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            white-space: nowrap;
         }
-        .prob-knot-panel .prob-selector button:active {
-            background: #27ae60;
+        .knot-search-container button:active {
+            background: #166d8a;
             transform: scale(0.97);
         }
-        .prob-knot-panel .prob-result {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 0.7rem;
-            max-height: 250px;
+        .knot-result-container {
+            max-height: 350px;
             overflow-y: auto;
-            display: none;
         }
-        .prob-knot-panel .prob-result .prob-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.65rem;
-        }
-        .prob-knot-panel .prob-result .prob-table th {
-            background: #eef3f8;
-            padding: 6px 8px;
-            text-align: left;
-            font-weight: 700;
-            color: #2d6d89;
-            border-bottom: 2px solid #d4e2ec;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        .prob-knot-panel .prob-result .prob-table td {
-            padding: 5px 8px;
-            border-bottom: 1px solid #eef3f8;
-        }
-        .prob-knot-panel .prob-result .prob-table tr:hover td {
-            background: #f7fbfe;
-        }
-        .prob-knot-panel .prob-result .prob-table .prob-cell {
-            font-family: monospace;
-            font-weight: 600;
-            text-align: right;
-        }
-        .prob-knot-panel .prob-result .prob-table .prob-cell.high {
-            color: #27ae60;
-        }
-        .prob-knot-panel .prob-result .prob-table .prob-cell.medium {
-            color: #f39c12;
-        }
-        .prob-knot-panel .prob-result .prob-table .prob-cell.low {
-            color: #e74c3c;
-        }
-        .prob-knot-panel .prob-result .prob-summary {
-            background: #eafaf1;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 8px;
-            font-size: 0.65rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2px 12px;
-        }
-        .prob-knot-panel .prob-result .prob-summary .item {
-            display: flex;
-            justify-content: space-between;
-        }
-        .prob-knot-panel .prob-result .prob-summary .item .label {
-            color: #5a7e92;
-        }
-        .prob-knot-panel .prob-result .prob-summary .item .value {
-            font-weight: 700;
-            color: #1a6e3e;
-        }
-        .prob-knot-panel .prob-no-data {
-            color: #5a7e92;
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 12px;
-            display: none;
-        }
-        .prob-knot-panel .prob-loading {
-            color: #f39c12;
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 8px;
-            display: none;
-        }
-        .prob-knot-panel .prob-result::-webkit-scrollbar {
+        .knot-result-container::-webkit-scrollbar {
             width: 4px;
         }
-        .prob-knot-panel .prob-result::-webkit-scrollbar-track {
+        .knot-result-container::-webkit-scrollbar-track {
             background: #eef3f8;
             border-radius: 4px;
         }
-        .prob-knot-panel .prob-result::-webkit-scrollbar-thumb {
-            background: #2ecc71;
+        .knot-result-container::-webkit-scrollbar-thumb {
+            background: #1f7e9e;
             border-radius: 4px;
         }
-
-        /* ===== PROB KNOT BUTTON ===== */
-        .btn-prob-knot {
-            background: #2ecc71;
-            color: white;
-            border: none;
-            padding: 10px 0;
-            width: 100%;
-            border-radius: 60px;
-            font-weight: 600;
+        .knot-vessel-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-left: 4px solid #1f7e9e;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .knot-vessel-card .vessel-name {
+            font-weight: 700;
+            color: #016e8c;
             font-size: 0.8rem;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: 0.2s;
+            margin-bottom: 4px;
         }
-        .btn-prob-knot:active {
-            background: #27ae60;
-            transform: scale(0.98);
+        .knot-vessel-card .vessel-name .vessel-id {
+            font-weight: 400;
+            color: #5a7e92;
+            font-size: 0.65rem;
         }
-        .btn-prob-knot.active {
-            background: #c0392b;
+        .knot-vessel-card .vessel-segmen {
+            font-size: 0.65rem;
+            color: #5a7e92;
+            margin-bottom: 6px;
+        }
+        .knot-vessel-card .knot-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+        .knot-vessel-card .knot-item {
+            background: #f0f6fc;
+            border-radius: 8px;
+            padding: 4px 6px;
+            text-align: center;
+            font-size: 0.6rem;
+        }
+        .knot-vessel-card .knot-item .knot-label {
+            color: #5a7e92;
+            font-weight: 500;
+        }
+        .knot-vessel-card .knot-item .knot-value {
+            font-weight: 700;
+            color: #1f7e9e;
+            font-family: monospace;
+            font-size: 0.7rem;
+        }
+        .knot-vessel-card .knot-item .knot-value.high {
+            color: #27ae60;
+        }
+        .knot-vessel-card .knot-item .knot-value.low {
+            color: #e67e22;
+        }
+        .knot-vessel-card .knot-item .knot-value.very-low {
+            color: #e74c3c;
+        }
+        .knot-not-found {
+            background: #fdedec;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            color: #e74c3c;
+            font-weight: 600;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -1443,6 +1397,24 @@
                 </div>
             </div>
 
+            <!-- ====== KNOT PROBABILITY PANEL ====== -->
+            <div class="knot-probability-panel" id="knotPanel">
+                <div class="knot-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>KNOT PROBABILITY</span>
+                    <span class="knot-badge">5 Knot</span>
+                </div>
+                <div class="knot-search-container">
+                    <input type="text" id="knotSearchInput" placeholder="Cari nama kapal..." autocomplete="off">
+                    <button id="knotSearchBtn"><i class="fas fa-search"></i> Cari</button>
+                </div>
+                <div class="knot-result-container" id="knotResultContainer">
+                    <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
+                        <i class="fas fa-info-circle"></i> Cari kapal untuk melihat probabilitas knot di setiap segmen
+                    </div>
+                </div>
+            </div>
+
             <div class="trajectory-selector" id="trajectorySelector">
                 <div class="traj-header">
                     <i class="fas fa-route"></i>
@@ -1486,49 +1458,6 @@
                     <input type="number" id="shipDraft" placeholder="Draft (m)" value="" step="0.1">
                 </div>
                 <button id="fetchShipByMmsiBtn" style="width:100%; background:#d4eaf3; border:none; padding:10px; border-radius:40px;"><i class="fas fa-search"></i> Pilih Kapal & Set START</button>
-            </div>
-
-            <!-- ===== PROBABILITY KNOT PANEL ===== -->
-            <div class="prob-knot-panel" id="probKnotPanel">
-                <div class="prob-header">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Probability Knot</span>
-                    <span class="prob-badge">5 Kelas</span>
-                </div>
-                <div class="prob-selector">
-                    <select id="probSegmenSelect">
-                        <option value="">-- Pilih Segmen --</option>
-                        <option value="1">Segmen 1</option>
-                        <option value="2">Segmen 2</option>
-                        <option value="3">Segmen 3</option>
-                    </select>
-                    <button id="probCalculateBtn"><i class="fas fa-calculator"></i> Hitung</button>
-                </div>
-                <div class="prob-loading" id="probLoading"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
-                <div class="prob-result" id="probResult">
-                    <table class="prob-table" id="probTable">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>MMSI</th>
-                                <th>Nama Kapal</th>
-                                <th>Knot 1</th>
-                                <th>Knot 2</th>
-                                <th>Knot 3</th>
-                                <th>Knot 4</th>
-                                <th>Knot 5</th>
-                            </tr>
-                        </thead>
-                        <tbody id="probTableBody"></tbody>
-                    </table>
-                    <div class="prob-summary" id="probSummary">
-                        <div class="item"><span class="label">Total Kapal</span><span class="value" id="probTotalShips">-</span></div>
-                        <div class="item"><span class="label">Segmen</span><span class="value" id="probSegmenInfo">-</span></div>
-                        <div class="item"><span class="label">Knot Classes</span><span class="value" id="probKnotInfo">5</span></div>
-                        <div class="item"><span class="label">Probabilitas Tertinggi</span><span class="value" id="probHighest">-</span></div>
-                    </div>
-                </div>
-                <div class="prob-no-data" id="probNoData">⚠️ Tidak ada data probabilitas untuk segmen ini.</div>
             </div>
 
             <div class="ukc-panel" id="ukcPanel">
@@ -1676,9 +1605,6 @@
                 </button>
             </div>
 
-            <!-- ===== PROB KNOT BUTTON ===== -->
-            <button class="btn-prob-knot" id="probKnotToggleBtn"><i class="fas fa-chart-pie"></i> Probability Knot</button>
-
             <button class="btn-primary" id="runRouteBtn"><i class="fas fa-route"></i> GENERATE RUTE</button>
             <button class="btn-outline" id="animateBtn"><i class="fas fa-play"></i> ANIMASI KAPAL</button>
             <button class="btn-outline" id="clearAllBtn"><i class="fas fa-trash-alt"></i> RESET</button>
@@ -1698,6 +1624,187 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
     <script>
+        // ============================================================
+        // DATA KNOT PROBABILITY (dari data yang diberikan)
+        // ============================================================
+        const KNOT_DATA = {
+            "segmen_1": {
+                "segmen": 1,
+                "knot": 5,
+                "data": [
+                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.946887213, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.9607363261, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.9658615126, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.9727678241, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
+                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.974128086, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}}
+                ]
+            },
+            "segmen_2": {
+                "segmen": 2,
+                "knot": 5,
+                "data": [
+                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.9219635094, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.9399810897, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.9468499092, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.9563274077, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
+                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.9582292597, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}}
+                ]
+            },
+            "segmen_3": {
+                "segmen": 3,
+                "knot": 5,
+                "data": [
+                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.7076879355, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.7424453942, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.7571064884, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.7790544976, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
+                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.7837477548, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}}
+                ]
+            }
+        };
+
+        // ============================================================
+        // KNOT PROBABILITY FUNCTIONS
+        // ============================================================
+        function searchVesselByName(name) {
+            const results = [];
+            const searchLower = name.toLowerCase().trim();
+            
+            for (const [segmenKey, segmenData] of Object.entries(KNOT_DATA)) {
+                const segmenNumber = segmenData.segmen;
+                for (const vessel of segmenData.data) {
+                    const vesselName = vessel.nama.toLowerCase();
+                    if (vesselName.includes(searchLower) || searchLower.includes(vesselName)) {
+                        // Check if already added
+                        const existing = results.find(r => r.id === vessel.id && r.nama === vessel.nama);
+                        if (!existing) {
+                            results.push({
+                                id: vessel.id,
+                                nama: vessel.nama,
+                                segmenData: []
+                            });
+                        }
+                        const resultItem = results.find(r => r.id === vessel.id && r.nama === vessel.nama);
+                        if (resultItem) {
+                            resultItem.segmenData.push({
+                                segmen: segmenNumber,
+                                values: vessel.values
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Sort results by segmen
+            for (const result of results) {
+                result.segmenData.sort((a, b) => a.segmen - b.segmen);
+            }
+            
+            return results;
+        }
+
+        function renderKnotResults(results) {
+            const container = document.getElementById('knotResultContainer');
+            
+            if (!results || results.length === 0) {
+                container.innerHTML = `
+                    <div class="knot-not-found">
+                        <i class="fas fa-ship" style="font-size:1.2rem; display:block; margin-bottom:8px;"></i>
+                        Kapal tidak ditemukan. Coba nama lain.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            for (const vessel of results) {
+                html += `
+                    <div class="knot-vessel-card">
+                        <div class="vessel-name">
+                            <span><i class="fas fa-ship" style="color:#1f7e9e; margin-right:6px;"></i>${vessel.nama}</span>
+                            <span class="vessel-id">MMSI: ${vessel.id}</span>
+                        </div>
+                `;
+                
+                for (const seg of vessel.segmenData) {
+                    const values = seg.values;
+                    const knotLabels = ['1', '2', '3', '4', '5'];
+                    
+                    html += `
+                        <div class="vessel-segmen">📍 Segmen ${seg.segmen}</div>
+                        <div class="knot-grid">
+                    `;
+                    
+                    for (const label of knotLabels) {
+                        const val = values[label] || 0;
+                        let valueClass = '';
+                        if (val > 0.9) valueClass = 'high';
+                        else if (val > 0.5) valueClass = '';
+                        else if (val > 0.1) valueClass = 'low';
+                        else valueClass = 'very-low';
+                        
+                        const percentage = (val * 100).toFixed(4);
+                        html += `
+                            <div class="knot-item">
+                                <div class="knot-label">Knot ${label}</div>
+                                <div class="knot-value ${valueClass}">${percentage}%</div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function searchKnotVessel() {
+            const input = document.getElementById('knotSearchInput');
+            const query = input.value.trim();
+            
+            if (!query) {
+                document.getElementById('knotResultContainer').innerHTML = `
+                    <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
+                        <i class="fas fa-info-circle"></i> Masukkan nama kapal untuk mencari probabilitas knot
+                    </div>
+                `;
+                return;
+            }
+            
+            const results = searchVesselByName(query);
+            renderKnotResults(results);
+            
+            // Show panel if hidden
+            document.getElementById('knotPanel').style.display = 'block';
+            
+            if (results.length > 0) {
+                setStatus(`🔍 Ditemukan ${results.length} kapal dengan nama "${query}"`, "#1f7e9e");
+                setInfo(`Probabilitas knot untuk ${results.length} kapal ditampilkan`);
+            } else {
+                setStatus(`🔍 Tidak ada kapal dengan nama "${query}"`, "#e67e22");
+                setInfo(`Coba kata kunci lain untuk mencari kapal`);
+            }
+        }
+
+        // ============================================================
+        // MAP INITIALIZATION (sama seperti sebelumnya)
+        // ============================================================
         const MAPTILER_KEY = 'mP5EMYL63473c6VT5cg6';
         const map = L.map('map', { zoomControl: false }).setView([-2.5, 118], 5);
         L.tileLayer(`https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=${MAPTILER_KEY}`, {
@@ -1708,99 +1815,7 @@
         }).addTo(map);
 
         // ============================================================
-        // PROBABILITY KNOT MODULE
-        // ============================================================
-        let probKnotData = null;
-        let probKnotLoaded = false;
-
-        async function loadProbKnotData() {
-            const loading = document.getElementById('probLoading');
-            loading.style.display = 'block';
-            
-            try {
-                const res = await fetch('prob_knot.json');
-                probKnotData = await res.json();
-                probKnotLoaded = true;
-                loading.style.display = 'none';
-                setStatus(`📊 Data probabilitas knot dimuat (${Object.keys(probKnotData).length} segmen)`, "#2ecc71");
-                setInfo("Probabilitas knot per segmen siap digunakan.");
-            } catch (e) {
-                console.error('ProbKnot load error:', e);
-                loading.style.display = 'none';
-                document.getElementById('probNoData').style.display = 'block';
-                setStatus("⚠️ prob_knot.json tidak ditemukan", "#e67e22");
-                setInfo("File prob_knot.json belum tersedia");
-            }
-        }
-
-        function calculateProbabilityKnot(segmen) {
-            const resultDiv = document.getElementById('probResult');
-            const tableBody = document.getElementById('probTableBody');
-            const noData = document.getElementById('probNoData');
-            const summary = document.getElementById('probSummary');
-
-            if (!probKnotLoaded || !probKnotData) {
-                noData.style.display = 'block';
-                resultDiv.style.display = 'none';
-                return;
-            }
-
-            const segmenKey = `segmen_${segmen}`;
-            const segmenData = probKnotData[segmenKey];
-
-            if (!segmenData || !segmenData.data || segmenData.data.length === 0) {
-                noData.style.display = 'block';
-                resultDiv.style.display = 'none';
-                setStatus(`⚠️ Tidak ada data untuk Segmen ${segmen}`, "#e67e22");
-                return;
-            }
-
-            noData.style.display = 'none';
-            resultDiv.style.display = 'block';
-
-            let html = '';
-            let totalShips = segmenData.data.length;
-            let highestProb = 0;
-            let highestShip = '';
-
-            for (let i = 0; i < segmenData.data.length; i++) {
-                const ship = segmenData.data[i];
-                const vals = ship.values;
-                const probs = [vals['1'] || 0, vals['2'] || 0, vals['3'] || 0, vals['4'] || 0, vals['5'] || 0];
-                
-                // Find highest probability for this ship
-                const maxProb = Math.max(...probs);
-                if (maxProb > highestProb) {
-                    highestProb = maxProb;
-                    highestShip = ship.nama || ship.id;
-                }
-
-                html += `<tr>
-                    <td>${i + 1}</td>
-                    <td>${ship.id}</td>
-                    <td>${ship.nama || '-'}</td>
-                    <td class="prob-cell ${probs[0] > 0.5 ? 'high' : (probs[0] > 0.1 ? 'medium' : 'low')}">${(probs[0] * 100).toFixed(2)}%</td>
-                    <td class="prob-cell ${probs[1] > 0.5 ? 'high' : (probs[1] > 0.1 ? 'medium' : 'low')}">${(probs[1] * 100).toFixed(2)}%</td>
-                    <td class="prob-cell ${probs[2] > 0.5 ? 'high' : (probs[2] > 0.1 ? 'medium' : 'low')}">${(probs[2] * 100).toFixed(2)}%</td>
-                    <td class="prob-cell ${probs[3] > 0.5 ? 'high' : (probs[3] > 0.1 ? 'medium' : 'low')}">${(probs[3] * 100).toFixed(2)}%</td>
-                    <td class="prob-cell ${probs[4] > 0.5 ? 'high' : (probs[4] > 0.1 ? 'medium' : 'low')}">${(probs[4] * 100).toFixed(2)}%</td>
-                </tr>`;
-            }
-
-            tableBody.innerHTML = html;
-
-            document.getElementById('probTotalShips').textContent = totalShips;
-            document.getElementById('probSegmenInfo').textContent = `Segmen ${segmen}`;
-            document.getElementById('probKnotInfo').textContent = segmenData.knot || 5;
-            document.getElementById('probHighest').textContent = `${(highestProb * 100).toFixed(2)}% (${highestShip})`;
-
-            summary.style.display = 'grid';
-            setStatus(`📊 Probabilitas knot Segmen ${segmen}: ${totalShips} kapal`, "#2ecc71");
-            setInfo(`Probabilitas knot untuk Segmen ${segmen} ditampilkan.`);
-        }
-
-        // ============================================================
-        // MEASUREMENT MODULE
+        // MEASUREMENT MODULE (sama seperti sebelumnya)
         // ============================================================
         let measureModeActive = false;
         let measurePoints = [];
@@ -1962,7 +1977,7 @@
         }
 
         // ============================================================
-        // DATA GELOMBANG (WAVE)
+        // DATA GELOMBANG (sama seperti sebelumnya)
         // ============================================================
         let waveData = [];
 
@@ -2019,7 +2034,7 @@
         }
 
         // ============================================================
-        // SEGMEN DATA
+        // SEGMEN DATA (sama seperti sebelumnya)
         // ============================================================
         const SEGMEN_DATA = {
             "segmen": [
@@ -2061,7 +2076,7 @@
         };
 
         // ============================================================
-        // FUNGSI SEGMEN
+        // FUNGSI SEGMEN (sama seperti sebelumnya)
         // ============================================================
         function pointInSegmentPolygon(lat, lng, polygon) {
             let inside = false;
@@ -2274,7 +2289,7 @@
         }
 
         // ============================================================
-        // KONSTANTA KEDALAMAN
+        // KONSTANTA KEDALAMAN (sama seperti sebelumnya)
         // ============================================================
         const DEPTH_NOT_FOUND = 10000;
 
@@ -2359,7 +2374,7 @@
         }
 
         // ============================================================
-        // UKC MODUL - DENGAN SEGMEN
+        // UKC MODUL (sama seperti sebelumnya)
         // ============================================================
         let ukcInputs = {
             shipName: '',
@@ -2761,7 +2776,7 @@
         }
 
         // ============================================================
-        // FUNGSI-FUNGSI LAINNYA
+        // FUNGSI-FUNGSI LAINNYA (sama seperti sebelumnya)
         // ============================================================
         function canSee(a, b, samples = 22) { for (let i = 1; i < samples; i++) { const t = i / samples, lat = a[0] + (b[0] -
                     a[0]) * t, lng = a[1] + (b[1] - a[1]) * t; if (isBlocked(lat, lng)) return false; } return true; }
@@ -2848,7 +2863,7 @@
         }
 
         // ============================================================
-        // TRAJECTORY FUNCTIONS
+        // TRAJECTORY FUNCTIONS (sama seperti sebelumnya)
         // ============================================================
         async function loadTrajectoryData() {
             try {
@@ -3345,7 +3360,7 @@
         }
 
         // ============================================================
-        // LOAD MODE
+        // LOAD MODE (sama seperti sebelumnya)
         // ============================================================
         async function loadMode(modeName) {
             currentMode = modeName;
@@ -3461,7 +3476,6 @@
                         setupPortSearch(); } } catch (e) { console.log("pelabuhan.json opsional"); }
 
                 await loadTrajectoryData();
-                await loadProbKnotData();
             } else { islands = [];
                 setStatus(`🔹 BIGRU: tanpa pulau`, "#2f7f5f");
                 setInfo("Mode BIGRU: tanpa obstacle pulau"); }
@@ -3522,7 +3536,7 @@
                     heap.push([ng + h, nb]); } } } return null; }
 
         // ============================================================
-        // AI RESPONSE
+        // AI RESPONSE (sama seperti sebelumnya)
         // ============================================================
         function generateAIStyleResponse(pathIds, rawCoords, totalKm, unsafeWaypointsCount, startDepth, endDepth) {
             let lines = [];
@@ -3591,7 +3605,7 @@
         }
 
         // ============================================================
-        // RUN ROUTE
+        // RUN ROUTE (sama seperti sebelumnya)
         // ============================================================
         async function runRoute() {
             if (!start) { alert("⚠️ Belum ada kapal! Cari MMSI atau pilih dari Trajectory."); return; }
@@ -3691,7 +3705,7 @@
         }
 
         // ============================================================
-        // FUNGSI LAINNYA
+        // FUNGSI LAINNYA (sama seperti sebelumnya)
         // ============================================================
         function createShipIcon() { const sog = activeShipTelemetry?.sog || 0; const cog = activeShipTelemetry?.cog ||
                 '?'; const lengthVal = currentShipLength || activeShipTelemetry?.length || 0; const draftVal =
@@ -3984,27 +3998,12 @@
         // Wave event listeners
         document.getElementById('waveApplyBtn').addEventListener('click', applyWaveData);
 
-        // Probability Knot event listeners
-        document.getElementById('probKnotToggleBtn').addEventListener('click', function() {
-            const panel = document.getElementById('probKnotPanel');
-            if (panel.style.display === 'none' || panel.style.display === '') {
-                panel.style.display = 'block';
-                this.classList.add('active');
-                setStatus("📊 Panel Probability Knot dibuka", "#2ecc71");
-            } else {
-                panel.style.display = 'none';
-                this.classList.remove('active');
-                setStatus("Panel Probability Knot ditutup", "#447799");
+        // Knot Probability event listeners
+        document.getElementById('knotSearchBtn').addEventListener('click', searchKnotVessel);
+        document.getElementById('knotSearchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchKnotVessel();
             }
-        });
-
-        document.getElementById('probCalculateBtn').addEventListener('click', function() {
-            const segmen = parseInt(document.getElementById('probSegmenSelect').value);
-            if (!segmen || segmen < 1 || segmen > 3) {
-                alert('Pilih segmen yang valid (1-3)!');
-                return;
-            }
-            calculateProbabilityKnot(segmen);
         });
 
         document.getElementById('vesselSelect').addEventListener('change', function() {
@@ -4120,13 +4119,18 @@
         setRouteMode("AUTO");
         document.getElementById('modeBiltsmBtn').classList.add('active');
         setStatus(
-            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Klik 'Ukur Jarak' untuk mengukur 2 titik di peta.", "#2f9e6b");
+            "🌊 Pilih kapal dari Trajectory, atau via MMSI. Klik 'Ukur Jarak' untuk mengukur 2 titik di peta. Gunakan 'KNOT PROBABILITY' untuk mencari probabilitas knot kapal.", "#2f9e6b");
         
         // Load wave data
         loadWaveData();
-        
-        // Initialize prob panel hidden
-        document.getElementById('probKnotPanel').style.display = 'none';
+
+        // Show Knot Probability panel hint
+        document.getElementById('knotPanel').style.display = 'block';
+        document.getElementById('knotResultContainer').innerHTML = `
+            <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
+                <i class="fas fa-search"></i> Cari nama kapal untuk melihat probabilitas knot di setiap segmen
+            </div>
+        `;
     </script>
 </body>
 </html>
