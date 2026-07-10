@@ -1742,7 +1742,7 @@
                 `;
                 return;
             }
-
+        
             let html = '';
             for (const vessel of results) {
                 // Tampilkan model yang tersedia untuk vessel ini
@@ -1782,11 +1782,11 @@
                         else if (val > 0.1) valueClass = 'low';
                         else valueClass = 'very-low';
                         
-                        const percentage = (val * 100).toFixed(4);
+                        // Tampilkan nilai asli (bukan persen)
                         html += `
                             <div class="knot-item">
                                 <div class="knot-label">Knot ${label}</div>
-                                <div class="knot-value ${valueClass}">${percentage}%</div>
+                                <div class="knot-value ${valueClass}">${val.toFixed(10)}</div>
                             </div>
                         `;
                     }
@@ -1803,7 +1803,7 @@
             
             container.innerHTML = html;
         }
-
+        
         function searchKnotVessel() {
             if (!knotDataLoaded) {
                 document.getElementById('knotResultContainer').innerHTML = `
