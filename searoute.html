@@ -1300,6 +1300,7 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 4px;
+            overflow-x: auto;
         }
         .knot-vessel-card .knot-item {
             background: #f0f6fc;
@@ -1307,16 +1308,24 @@
             padding: 4px 6px;
             text-align: center;
             font-size: 0.6rem;
+            min-width: 45px;
         }
         .knot-vessel-card .knot-item .knot-label {
             color: #5a7e92;
             font-weight: 500;
+            display: block;
+            font-size: 0.55rem;
         }
         .knot-vessel-card .knot-item .knot-value {
             font-weight: 700;
             color: #1f7e9e;
             font-family: monospace;
             font-size: 0.7rem;
+            display: block;
+            margin-top: 2px;
+            word-break: break-all;
+            max-width: 100%;
+            overflow-wrap: break-word;
         }
         .knot-vessel-card .knot-item .knot-value.high {
             color: #27ae60;
@@ -1367,21 +1376,6 @@
         .model-badge.bigru {
             background: #8e44ad;
             color: white;
-        }
-
-        /* Progress bar for probability */
-        .prob-bar {
-            width: 100%;
-            height: 4px;
-            background: #e9ecef;
-            border-radius: 2px;
-            margin-top: 2px;
-            overflow: hidden;
-        }
-        .prob-bar .prob-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.3s ease;
         }
     </style>
 </head>
@@ -1675,10 +1669,10 @@
         // ============================================================
         let KNOT_DATA = null;
         let knotDataLoaded = false;
-        let currentKnotModel = 'BiLSTM'; // Default model
+        let currentKnotModel = 'BiLSTM';
 
         // ============================================================
-        // KNOT PROBABILITY FUNCTIONS - Dengan tampilan yang lebih rapi
+        // KNOT PROBABILITY FUNCTIONS
         // ============================================================
         function getSegmenKey(model, segmen) {
             return `segmen_${segmen}_${model.toLowerCase()}`;
@@ -1737,13 +1731,6 @@
             return results;
         }
 
-        function formatProbability(val) {
-            // Format dengan 4 angka desimal, bersih tanpa trailing zeros
-            if (val === 0) return '0.0000';
-            if (val === 1) return '1.0000';
-            return val.toFixed(4);
-        }
-
         function renderKnotResults(results) {
             const container = document.getElementById('knotResultContainer');
             
@@ -1794,16 +1781,13 @@
                         else if (val > 0.1) valueClass = 'low';
                         else valueClass = 'very-low';
                         
-                        // Format dengan 4 desimal
-                        const formattedVal = formatProbability(val);
+                        // Menampilkan nilai dengan 10 digit desimal tanpa terpotong
+                        const displayVal = val.toFixed(10);
                         
                         html += `
                             <div class="knot-item">
-                                <div class="knot-label">Knot ${label}</div>
-                                <div class="knot-value ${valueClass}">${formattedVal}</div>
-                                <div class="prob-bar">
-                                    <div class="prob-fill" style="width:${Math.min(val * 100, 100)}%; background:${val > 0.9 ? '#27ae60' : val > 0.5 ? '#1f7e9e' : val > 0.1 ? '#e67e22' : '#e74c3c'};"></div>
-                                </div>
+                                <span class="knot-label">Knot ${label}</span>
+                                <span class="knot-value ${valueClass}">${displayVal}</span>
                             </div>
                         `;
                     }
@@ -1850,6 +1834,7 @@
             renderKnotResults(results);
             
             document.getElementById('knotPanel').style.display = 'block';
+            
             document.getElementById('knotModelBadge').textContent = `Model: ${currentKnotModel}`;
             
             if (results.length > 0) {
