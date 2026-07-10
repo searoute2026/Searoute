@@ -1337,6 +1337,20 @@
             font-weight: 600;
             font-size: 0.8rem;
         }
+        .knot-loading {
+            text-align: center;
+            color: #5a7e92;
+            font-size: 0.7rem;
+            padding: 16px;
+        }
+        .knot-loading i {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1398,7 +1412,22 @@
             </div>
 
             <!-- ====== KNOT PROBABILITY PANEL ====== -->
-            
+            <div class="knot-probability-panel" id="knotPanel">
+                <div class="knot-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>KNOT PROBABILITY</span>
+                    <span class="knot-badge">5 Knot</span>
+                </div>
+                <div class="knot-search-container">
+                    <input type="text" id="knotSearchInput" placeholder="Cari nama kapal..." autocomplete="off">
+                    <button id="knotSearchBtn"><i class="fas fa-search"></i> Cari</button>
+                </div>
+                <div class="knot-result-container" id="knotResultContainer">
+                    <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
+                        <i class="fas fa-info-circle"></i> Cari kapal untuk melihat probabilitas knot di setiap segmen
+                    </div>
+                </div>
+            </div>
 
             <div class="trajectory-selector" id="trajectorySelector">
                 <div class="traj-header">
@@ -1516,22 +1545,7 @@
                 </div>
                 <div id="ukcResult" class="ukc-result"></div>
             </div>
-            <div class="knot-probability-panel" id="knotPanel">
-                <div class="knot-header">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>KNOT PROBABILITY</span>
-                    <span class="knot-badge">5 Knot</span>
-                </div>
-                <div class="knot-search-container">
-                    <input type="text" id="knotSearchInput" placeholder="Cari nama kapal..." autocomplete="off">
-                    <button id="knotSearchBtn"><i class="fas fa-search"></i> Cari</button>
-                </div>
-                <div class="knot-result-container" id="knotResultContainer">
-                    <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
-                        <i class="fas fa-info-circle"></i> Cari kapal untuk melihat probabilitas knot di setiap segmen
-                    </div>
-                </div>
-            </div>
+
             <div class="ukc-segmen-result" id="ukcSegmenResult">
                 <div class="segmen-header">
                     <i class="fas fa-layer-group"></i>
@@ -1625,57 +1639,17 @@
     </script>
     <script>
         // ============================================================
-        // DATA KNOT PROBABILITY (dari data yang diberikan)
+        // DATA KNOT PROBABILITY - Dimuat dari JSON terpisah
         // ============================================================
-        const KNOT_DATA = {
-            "segmen_1": {
-                "segmen": 1,
-                "knot": 5,
-                "data": [
-                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.946887213, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.9607363261, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.9664719314, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.9658615126, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.9727678241, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}},
-                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.974128086, "2": 0.000001064216363, "3": 0.000001418954899, "4": 0.000002128431594, "5": 0.000004256858657}}
-                ]
-            },
-            "segmen_2": {
-                "segmen": 2,
-                "knot": 5,
-                "data": [
-                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.9219635094, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.9399810897, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.9476766711, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.9468499092, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.9563274077, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}},
-                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.9582292597, "2": 0.0000009247208367, "3": 0.000001232960925, "4": 0.000001849440818, "5": 0.000003698878216}}
-                ]
-            },
-            "segmen_3": {
-                "segmen": 3,
-                "knot": 5,
-                "data": [
-                    {"id": 525113039, "nama": "Lumoso Selalu", "values": {"1": 0.7076879355, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525121084, "nama": "Amolongo Emran", "values": {"1": 0.7424453942, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525600499, "nama": "Argha g", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525121083, "nama": "NIMAOME EMRAN", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525018329, "nama": "Jayadi 03", "values": {"1": 0.7589358285, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525120002, "nama": "MV Nadhif", "values": {"1": 0.7571064884, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525113036, "nama": "Lumoso Sahabat", "values": {"1": 0.7790544976, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}},
-                    {"id": 525113037, "nama": "Lumoso Setia", "values": {"1": 0.7837477548, "2": 0.0000004459165437, "3": 0.0000005945553474, "4": 0.0000008918328885, "5": 0.000001783664982}}
-                ]
-            }
-        };
+        let KNOT_DATA = null;
+        let knotDataLoaded = false;
 
         // ============================================================
         // KNOT PROBABILITY FUNCTIONS
         // ============================================================
         function searchVesselByName(name) {
+            if (!KNOT_DATA) return [];
+            
             const results = [];
             const searchLower = name.toLowerCase().trim();
             
@@ -1775,6 +1749,18 @@
         }
 
         function searchKnotVessel() {
+            if (!knotDataLoaded) {
+                document.getElementById('knotResultContainer').innerHTML = `
+                    <div class="knot-loading">
+                        <i class="fas fa-spinner"></i> Memuat data probabilitas...
+                    </div>
+                `;
+                loadKnotData().then(() => {
+                    searchKnotVessel();
+                });
+                return;
+            }
+            
             const input = document.getElementById('knotSearchInput');
             const query = input.value.trim();
             
@@ -1799,6 +1785,47 @@
             } else {
                 setStatus(`🔍 Tidak ada kapal dengan nama "${query}"`, "#e67e22");
                 setInfo(`Coba kata kunci lain untuk mencari kapal`);
+            }
+        }
+
+        // ============================================================
+        // LOAD KNOT DATA FROM JSON
+        // ============================================================
+        async function loadKnotData() {
+            try {
+                const container = document.getElementById('knotResultContainer');
+                container.innerHTML = `
+                    <div class="knot-loading">
+                        <i class="fas fa-spinner"></i> Memuat data probabilitas dari knot_probability.json...
+                    </div>
+                `;
+                
+                const response = await fetch('knot_probability.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                KNOT_DATA = data;
+                knotDataLoaded = true;
+                
+                container.innerHTML = `
+                    <div style="text-align:center; color:#27ae60; font-size:0.7rem; padding:16px;">
+                        <i class="fas fa-check-circle"></i> Data probabilitas knot dimuat! Cari kapal.
+                    </div>
+                `;
+                setStatus("✅ knot_probability.json dimuat", "#27ae60");
+                setInfo("Data probabilitas knot siap digunakan");
+            } catch (e) {
+                console.error('Error loading knot probability data:', e);
+                document.getElementById('knotResultContainer').innerHTML = `
+                    <div class="knot-not-found">
+                        <i class="fas fa-exclamation-triangle" style="font-size:1.2rem; display:block; margin-bottom:8px;"></i>
+                        Gagal memuat knot_probability.json<br>
+                        <span style="font-size:0.6rem; color:#5a7e92;">${e.message}</span>
+                    </div>
+                `;
+                setStatus("⚠️ Gagal memuat knot_probability.json", "#e74c3c");
+                setInfo(`Error: ${e.message}`);
             }
         }
 
@@ -4124,11 +4151,14 @@
         // Load wave data
         loadWaveData();
 
+        // Load Knot Probability data from JSON
+        loadKnotData();
+
         // Show Knot Probability panel hint
         document.getElementById('knotPanel').style.display = 'block';
         document.getElementById('knotResultContainer').innerHTML = `
             <div style="text-align:center; color:#5a7e92; font-size:0.7rem; padding:16px;">
-                <i class="fas fa-search"></i> Cari nama kapal untuk melihat probabilitas knot di setiap segmen
+                <i class="fas fa-spinner fa-spin"></i> Memuat data probabilitas...
             </div>
         `;
     </script>
