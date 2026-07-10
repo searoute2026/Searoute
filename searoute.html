@@ -1351,6 +1351,24 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Model badge */
+        .model-badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .model-badge.bilstm {
+            background: #3498db;
+            color: white;
+        }
+        .model-badge.bigru {
+            background: #8e44ad;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -1416,7 +1434,7 @@
                 <div class="knot-header">
                     <i class="fas fa-chart-pie"></i>
                     <span>KNOT PROBABILITY</span>
-                    <span class="knot-badge">5 Knot</span>
+                    <span class="knot-badge" id="knotModelBadge">Model: -</span>
                 </div>
                 <div class="knot-search-container">
                     <input type="text" id="knotSearchInput" placeholder="Cari nama kapal..." autocomplete="off">
@@ -1643,34 +1661,60 @@
         // ============================================================
         let KNOT_DATA = null;
         let knotDataLoaded = false;
+        let currentKnotModel = 'BiLSTM'; // Default model
 
         // ============================================================
-        // KNOT PROBABILITY FUNCTIONS
+        // KNOT PROBABILITY FUNCTIONS - Diperbarui untuk struktur JSON baru
         // ============================================================
-        function searchVesselByName(name) {
+        function getSegmenKey(model, segmen) {
+            return `segmen_${segmen}_${model.toLowerCase()}`;
+        }
+
+        function searchVesselByName(name, model = null) {
             if (!KNOT_DATA) return [];
             
-            const results = [];
             const searchLower = name.toLowerCase().trim();
+            const results = [];
+            const processedVessels = new Set();
+
+            // Gunakan model yang dipilih, atau semua model
+            const modelToUse = model || currentKnotModel;
             
-            for (const [segmenKey, segmenData] of Object.entries(KNOT_DATA)) {
+            // Cari di semua segmen untuk model yang dipilih
+            for (const [key, segmenData] of Object.entries(KNOT_DATA)) {
+                // Periksa apakah key sesuai dengan model yang dipilih
+                const keyLower = key.toLowerCase();
+                if (modelToUse && !keyLower.includes(modelToUse.toLowerCase())) continue;
+                
                 const segmenNumber = segmenData.segmen;
+                const segmenModel = segmenData.model || 'Unknown';
+                
                 for (const vessel of segmenData.data) {
                     const vesselName = vessel.nama.toLowerCase();
+                    // Cek apakah nama cocok (case-insensitive)
                     if (vesselName.includes(searchLower) || searchLower.includes(vesselName)) {
-                        // Check if already added
-                        const existing = results.find(r => r.id === vessel.id && r.nama === vessel.nama);
-                        if (!existing) {
-                            results.push({
-                                id: vessel.id,
-                                nama: vessel.nama,
-                                segmenData: []
-                            });
-                        }
-                        const resultItem = results.find(r => r.id === vessel.id && r.nama === vessel.nama);
-                        if (resultItem) {
-                            resultItem.segmenData.push({
+                        // Buat unique key untuk vessel di segmen ini
+                        const vesselKey = `${vessel.id}_${segmenNumber}`;
+                        
+                        if (!processedVessels.has(vesselKey)) {
+                            processedVessels.add(vesselKey);
+                            
+                            // Cari vessel yang sudah ada di results
+                            let existing = results.find(r => r.id === vessel.id && r.nama === vessel.nama);
+                            if (!existing) {
+                                existing = {
+                                    id: vessel.id,
+                                    nama: vessel.nama,
+                                    segmenData: [],
+                                    models: new Set()
+                                };
+                                results.push(existing);
+                            }
+                            
+                            existing.models.add(segmenModel);
+                            existing.segmenData.push({
                                 segmen: segmenNumber,
+                                model: segmenModel,
                                 values: vessel.values
                             });
                         }
@@ -1701,11 +1745,17 @@
 
             let html = '';
             for (const vessel of results) {
+                // Tampilkan model yang tersedia untuk vessel ini
+                const modelNames = Array.from(vessel.models).join(', ');
+                
                 html += `
                     <div class="knot-vessel-card">
                         <div class="vessel-name">
                             <span><i class="fas fa-ship" style="color:#1f7e9e; margin-right:6px;"></i>${vessel.nama}</span>
                             <span class="vessel-id">MMSI: ${vessel.id}</span>
+                        </div>
+                        <div style="font-size:0.55rem; color:#5a7e92; margin-bottom:6px;">
+                            Model: ${modelNames}
                         </div>
                 `;
                 
@@ -1713,8 +1763,14 @@
                     const values = seg.values;
                     const knotLabels = ['1', '2', '3', '4', '5'];
                     
+                    // Tampilkan badge model
+                    const modelClass = seg.model && seg.model.toLowerCase() === 'bigru' ? 'bigru' : 'bilstm';
+                    
                     html += `
-                        <div class="vessel-segmen">📍 Segmen ${seg.segmen}</div>
+                        <div class="vessel-segmen">
+                            📍 Segmen ${seg.segmen}
+                            <span class="model-badge ${modelClass}">${seg.model || 'BiLSTM'}</span>
+                        </div>
                         <div class="knot-grid">
                     `;
                     
@@ -1773,18 +1829,21 @@
                 return;
             }
             
-            const results = searchVesselByName(query);
+            const results = searchVesselByName(query, currentKnotModel);
             renderKnotResults(results);
             
             // Show panel if hidden
             document.getElementById('knotPanel').style.display = 'block';
             
+            // Update model badge
+            document.getElementById('knotModelBadge').textContent = `Model: ${currentKnotModel}`;
+            
             if (results.length > 0) {
-                setStatus(`🔍 Ditemukan ${results.length} kapal dengan nama "${query}"`, "#1f7e9e");
-                setInfo(`Probabilitas knot untuk ${results.length} kapal ditampilkan`);
+                setStatus(`🔍 Ditemukan ${results.length} kapal dengan nama "${query}" (${currentKnotModel})`, "#1f7e9e");
+                setInfo(`Probabilitas knot untuk ${results.length} kapal (${currentKnotModel})`);
             } else {
-                setStatus(`🔍 Tidak ada kapal dengan nama "${query}"`, "#e67e22");
-                setInfo(`Coba kata kunci lain untuk mencari kapal`);
+                setStatus(`🔍 Tidak ada kapal dengan nama "${query}" (${currentKnotModel})`, "#e67e22");
+                setInfo(`Coba kata kunci lain atau ganti model (BiLSTM/BiGRU)`);
             }
         }
 
@@ -1808,13 +1867,29 @@
                 KNOT_DATA = data;
                 knotDataLoaded = true;
                 
+                // Deteksi model yang tersedia
+                const models = new Set();
+                for (const [key, value] of Object.entries(data)) {
+                    if (value.model) {
+                        models.add(value.model);
+                    }
+                }
+                
+                const modelList = Array.from(models).join(', ');
+                
                 container.innerHTML = `
                     <div style="text-align:center; color:#27ae60; font-size:0.7rem; padding:16px;">
-                        <i class="fas fa-check-circle"></i> Data probabilitas knot dimuat! Cari kapal.
+                        <i class="fas fa-check-circle"></i> Data probabilitas knot dimuat! 
+                        <br><span style="font-size:0.6rem; color:#5a7e92;">Model tersedia: ${modelList}</span>
+                        <br><span style="font-size:0.6rem; color:#5a7e92;">Ganti model dengan tombol BIGRU / BILTSM</span>
                     </div>
                 `;
-                setStatus("✅ knot_probability.json dimuat", "#27ae60");
-                setInfo("Data probabilitas knot siap digunakan");
+                
+                // Set model badge
+                document.getElementById('knotModelBadge').textContent = `Model: ${currentKnotModel}`;
+                
+                setStatus(`✅ knot_probability.json dimuat (${modelList})`, "#27ae60");
+                setInfo(`Data probabilitas knot siap digunakan (${modelList})`);
             } catch (e) {
                 console.error('Error loading knot probability data:', e);
                 document.getElementById('knotResultContainer').innerHTML = `
@@ -3387,11 +3462,26 @@
         }
 
         // ============================================================
-        // LOAD MODE (sama seperti sebelumnya)
+        // LOAD MODE (diperbarui untuk mengupdate model knot)
         // ============================================================
         async function loadMode(modeName) {
             currentMode = modeName;
-            setStatus(`Memuat ${modeName}...`, "#f39c12");
+            
+            // Update model untuk knot probability
+            if (modeName === "BIGRU") {
+                currentKnotModel = "BiGRU";
+                document.getElementById('modeBigruBtn').classList.add('active');
+                document.getElementById('modeBiltsmBtn').classList.remove('active');
+            } else {
+                currentKnotModel = "BiLSTM";
+                document.getElementById('modeBiltsmBtn').classList.add('active');
+                document.getElementById('modeBigruBtn').classList.remove('active');
+            }
+            
+            // Update knot model badge
+            document.getElementById('knotModelBadge').textContent = `Model: ${currentKnotModel}`;
+            
+            setStatus(`Memuat ${modeName} (${currentKnotModel})...`, "#f39c12");
             islands = [];
             waypoints = [];
             wpGraph = {};
@@ -3999,12 +4089,12 @@
         // ============================================================
         // EVENT LISTENERS
         // ============================================================
-        document.getElementById('modeBigruBtn').addEventListener('click', () => { loadMode("BIGRU");
-            document.getElementById('modeBigruBtn').classList.add('active');
-            document.getElementById('modeBiltsmBtn').classList.remove('active'); });
-        document.getElementById('modeBiltsmBtn').addEventListener('click', () => { loadMode("BILTSM");
-            document.getElementById('modeBiltsmBtn').classList.add('active');
-            document.getElementById('modeBigruBtn').classList.remove('active'); });
+        document.getElementById('modeBigruBtn').addEventListener('click', () => { 
+            loadMode("BIGRU");
+        });
+        document.getElementById('modeBiltsmBtn').addEventListener('click', () => { 
+            loadMode("BILTSM");
+        });
         document.getElementById('routeModeAutoBtn').addEventListener('click', () => setRouteMode("AUTO"));
         document.getElementById('routeModeManualBtn').addEventListener('click', () => setRouteMode("MANUAL"));
         document.getElementById('applyStartBtn').addEventListener('click', applyStartFromInput);
