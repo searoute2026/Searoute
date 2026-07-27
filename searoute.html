@@ -1193,7 +1193,7 @@
             padding: 14px;
             margin: 12px 0;
             border: 2px solid #1f7e9e;
-            display: none;
+            display: block;
         }
         .knot-probability-panel .knot-header {
             display: flex;
@@ -1336,12 +1336,6 @@
         .knot-vessel-card .knot-item .knot-value.very-low {
             color: #e74c3c;
         }
-        .knot-vessel-card .knot-item .knot-value.segmen-luar {
-            background: #fef9e7;
-            border-radius: 4px;
-            padding: 2px 4px;
-            border: 1px dashed #f1c40f;
-        }
         .knot-not-found {
             background: #fdedec;
             border-radius: 12px;
@@ -1383,7 +1377,7 @@
             background: #8e44ad;
             color: white;
         }
-        .model-badge.segmen-luar {
+        .model-badge.luar {
             background: #f39c12;
             color: white;
         }
@@ -1568,7 +1562,7 @@
                 <div class="segmen-header">
                     <i class="fas fa-layer-group"></i>
                     <span>HASIL UKC PER SEGMEN</span>
-                    <span class="segmen-badge">4 SEGMEN</span>
+                    <span class="segmen-badge">3 SEGMEN</span>
                 </div>
                 <div id="segmenContent"></div>
             </div>
@@ -1608,7 +1602,7 @@
                 <div class="knot-header">
                     <i class="fas fa-chart-pie"></i>
                     <span>KNOT PROBABILITY</span>
-                    <span class="knot-badge" id="knotModelBadge">Model: -</span>
+                    <span class="knot-badge" id="knotModelBadge">Model: BiLSTM</span>
                 </div>
                 <div class="knot-search-container">
                     <input type="text" id="knotSearchInput" placeholder="Cari nama kapal..." autocomplete="off">
@@ -1687,20 +1681,6 @@
             return `segmen_${segmen}_${model.toLowerCase()}`;
         }
 
-        function getSegmenDisplayName(segmenKey) {
-            // Mengubah key seperti "segmen_1_bilstm" menjadi "Segmen 1"
-            // atau "segmen_luar_bilstm" menjadi "Segmen Luar"
-            const parts = segmenKey.split('_');
-            if (parts.length >= 2) {
-                const segmenPart = parts[1];
-                if (segmenPart === 'luar') {
-                    return 'Segmen Luar';
-                }
-                return `Segmen ${segmenPart}`;
-            }
-            return segmenKey;
-        }
-
         function searchVesselByName(name, model = null) {
             if (!KNOT_DATA) return [];
             
@@ -1710,9 +1690,10 @@
 
             const modelToUse = model || currentKnotModel;
             
+            // Cari di semua segmen termasuk segmen_luar
             for (const [key, segmenData] of Object.entries(KNOT_DATA)) {
-                const keyLower = key.toLowerCase();
-                if (modelToUse && !keyLower.includes(modelToUse.toLowerCase())) continue;
+                // Skip jika model tidak sesuai
+                if (modelToUse && !key.includes(modelToUse.toLowerCase())) continue;
                 
                 const segmenNumber = segmenData.segmen;
                 const segmenModel = segmenData.model || 'Unknown';
@@ -1740,8 +1721,7 @@
                             existing.segmenData.push({
                                 segmen: segmenNumber,
                                 model: segmenModel,
-                                values: vessel.values,
-                                key: key
+                                values: vessel.values
                             });
                         }
                     }
@@ -1750,11 +1730,10 @@
             
             for (const result of results) {
                 result.segmenData.sort((a, b) => {
-                    // Urutkan: segmen 1, 2, 3, lalu "luar"
-                    const order = { 1: 1, 2: 2, 3: 3, 'luar': 4 };
-                    const aOrder = order[a.segmen] || 999;
-                    const bOrder = order[b.segmen] || 999;
-                    return aOrder - bOrder;
+                    // Urutkan: luar (string) terakhir, segmen angka di awal
+                    if (a.segmen === 'luar' && b.segmen !== 'luar') return 1;
+                    if (a.segmen !== 'luar' && b.segmen === 'luar') return -1;
+                    return a.segmen - b.segmen;
                 });
             }
             
@@ -1793,17 +1772,21 @@
                     const values = seg.values;
                     const knotLabels = ['1', '2', '3', '4', '5'];
                     
-                    const modelClass = seg.model && seg.model.toLowerCase() === 'bigru' ? 'bigru' : 'bilstm';
+                    let modelClass = 'bilstm';
+                    let modelLabel = seg.model || 'BiLSTM';
+                    if (seg.model && seg.model.toLowerCase() === 'bigru') {
+                        modelClass = 'bigru';
+                    }
+                    if (seg.segmen === 'luar') {
+                        modelClass = 'luar';
+                    }
                     
-                    // Deteksi apakah ini segmen luar
-                    const isSegmenLuar = seg.segmen === 'luar' || seg.segmen === 'Luar';
-                    const segmenDisplay = isSegmenLuar ? 'Segmen Luar' : `Segmen ${seg.segmen}`;
+                    const segmenLabel = seg.segmen === 'luar' ? 'Segmen Luar' : `Segmen ${seg.segmen}`;
                     
                     html += `
                         <div class="vessel-segmen">
-                            📍 ${segmenDisplay}
-                            <span class="model-badge ${modelClass}">${seg.model || 'BiLSTM'}</span>
-                            ${isSegmenLuar ? '<span class="model-badge segmen-luar">🌊 LUAR</span>' : ''}
+                            📍 ${segmenLabel}
+                            <span class="model-badge ${modelClass}">${modelLabel}</span>
                         </div>
                         <div class="knot-grid">
                     `;
@@ -1815,10 +1798,6 @@
                         else if (val > 0.5) valueClass = '';
                         else if (val > 0.1) valueClass = 'low';
                         else valueClass = 'very-low';
-                        
-                        if (isSegmenLuar) {
-                            valueClass += ' segmen-luar';
-                        }
                         
                         // Menampilkan nilai dengan 10 digit desimal tanpa terpotong
                         const displayVal = val.toFixed(10);
@@ -1905,25 +1884,29 @@
                 KNOT_DATA = data;
                 knotDataLoaded = true;
                 
+                // Hitung total data
+                let totalVessels = 0;
                 const models = new Set();
                 const segments = new Set();
                 for (const [key, value] of Object.entries(data)) {
-                    if (value.model) {
-                        models.add(value.model);
-                    }
-                    if (value.segmen) {
-                        segments.add(value.segmen);
-                    }
+                    if (value.model) models.add(value.model);
+                    if (value.segmen !== undefined) segments.add(value.segmen);
+                    if (value.data) totalVessels += value.data.length;
                 }
                 
                 const modelList = Array.from(models).join(', ');
-                const segmentList = Array.from(segments).join(', ');
+                const segmentList = Array.from(segments).sort((a,b) => {
+                    if (a === 'luar' && b !== 'luar') return 1;
+                    if (a !== 'luar' && b === 'luar') return -1;
+                    return a - b;
+                }).join(', ');
                 
                 container.innerHTML = `
                     <div style="text-align:center; color:#27ae60; font-size:0.7rem; padding:16px;">
                         <i class="fas fa-check-circle"></i> Data probabilitas knot dimuat! 
                         <br><span style="font-size:0.6rem; color:#5a7e92;">Model: ${modelList}</span>
                         <br><span style="font-size:0.6rem; color:#5a7e92;">Segmen: ${segmentList}</span>
+                        <br><span style="font-size:0.6rem; color:#5a7e92;">Total data: ${totalVessels} kapal</span>
                         <br><span style="font-size:0.6rem; color:#5a7e92;">Ganti model dengan tombol BIGRU / BILTSM</span>
                     </div>
                 `;
@@ -1931,7 +1914,7 @@
                 document.getElementById('knotModelBadge').textContent = `Model: ${currentKnotModel}`;
                 
                 setStatus(`✅ knot_probability.json dimuat (${modelList})`, "#27ae60");
-                setInfo(`Data probabilitas knot siap digunakan (${modelList}) - Segmen: ${segmentList}`);
+                setInfo(`Data probabilitas knot siap digunakan (${modelList})`);
             } catch (e) {
                 console.error('Error loading knot probability data:', e);
                 document.getElementById('knotResultContainer').innerHTML = `
@@ -2208,21 +2191,6 @@
                         [-7.158806222674093, 112.68848419189455],
                         [-7.11452004551183, 112.68848419189455]
                     ]
-                },
-                {
-                    "name": "Segmen Luar",
-                    "polygon": [
-                        [-6.857576779654497, 112.71629333496095],
-                        [-6.888253787244398, 112.7904510498047],
-                        [-7.044334748242213, 112.71560668945314],
-                        [-7.045697671040922, 112.71457672119142],
-                        [-7.113157326014404, 112.68917083740236],
-                        [-7.158806222674093, 112.68848419189455],
-                        [-7.155059096882944, 112.6256561279297],
-                        [-7.094419523108713, 112.62943267822267],
-                        [-7.01571244520281, 112.6527786254883],
-                        [-7.015030940321513, 112.65243530273439]
-                    ]
                 }
             ]
         };
@@ -2231,7 +2199,6 @@
             'Segmen 1': '#FF0000',
             'Segmen 2': '#8B008B',
             'Segmen 3': '#D8A0D8',
-            'Segmen Luar': '#F39C12',
             'default': '#3498DB'
         };
 
@@ -2252,14 +2219,7 @@
         }
 
         function getSegmentForPoint(lat, lng) {
-            // Periksa segmen luar terlebih dahulu (karena poligonnya lebih besar)
-            const luarSegmen = SEGMEN_DATA.segmen.find(s => s.name === 'Segmen Luar');
-            if (luarSegmen && pointInSegmentPolygon(lat, lng, luarSegmen.polygon)) {
-                return 'Segmen Luar';
-            }
-            
             for (const seg of SEGMEN_DATA.segmen) {
-                if (seg.name === 'Segmen Luar') continue;
                 if (pointInSegmentPolygon(lat, lng, seg.polygon)) {
                     return seg.name;
                 }
@@ -2278,8 +2238,7 @@
                     lastSegment = seg;
                 }
             }
-            // Prioritas: Segmen Luar > Segmen 3 > Segmen 2 > Segmen 1
-            if (passedSegments.has('Segmen Luar')) return SEGMENT_COLORS['Segmen Luar'];
+            if (passedSegments.size >= 3) return SEGMENT_COLORS.default;
             if (passedSegments.has('Segmen 3')) return SEGMENT_COLORS['Segmen 3'];
             if (passedSegments.has('Segmen 2')) return SEGMENT_COLORS['Segmen 2'];
             if (passedSegments.has('Segmen 1')) return SEGMENT_COLORS['Segmen 1'];
